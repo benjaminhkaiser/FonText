@@ -45,6 +45,10 @@ public class Compose extends Activity {
 		String destination = txtDest.getText().toString();
 		String msg = txtMsg.getText().toString();
 		
+		//clear text fields
+		txtDest.setText("");
+		txtMsg.setText("");
+		
 		//initialize pendingintents
 		PendingIntent piSent = PendingIntent.getBroadcast(this, 0, new Intent(SENT), 0);
 		PendingIntent piDelivered = PendingIntent.getBroadcast(this, 0, new Intent(DEL), 0);
