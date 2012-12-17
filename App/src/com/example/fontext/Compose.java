@@ -107,4 +107,83 @@ public class Compose extends Activity {
 		}	// close catch	
 		
 	} //close sendMessage()
+
+	/**
+	 * If text in txtMessage field is highlighted, place bold tags
+	 * around text. Otherwise, display a toast telling the user to
+	 * highlight text to be bolded.
+	 * @param  view view from compose activity. contains num and msg. 
+	 * @return      void
+	 */
+	public void boldText(View view){
+		//Get text box and string from text box
+		EditText txtMsg = (EditText) findViewById(R.id.txtMessage);
+		String msg = txtMsg.getText().toString();
+		
+		if (txtMsg.getSelectionStart() == -1){	//if text has not been selected
+			Toast.makeText(getBaseContext(), "Please select text to bold", Toast.LENGTH_SHORT).show();
+		} else {
+			//insert * before and after selected text
+			int selStart = txtMsg.getSelectionStart();
+			int selEnd = txtMsg.getSelectionEnd() + 1;
+			StringBuffer strbufMsg = new StringBuffer(msg);
+			strbufMsg.insert(selStart, "*");
+			strbufMsg.insert(selEnd, "*");
+			txtMsg.setText(strbufMsg.toString());
+			txtMsg.setSelection(selStart + 1, selEnd);
+		}
+	}
+	
+	/**
+	 * If text in txtMessage field is highlighted, place italics
+	 * tags around text. Otherwise, display a toast telling the
+	 * user to highlight text to be italicized.
+	 * @param  view view from compose activity. contains num and msg. 
+	 * @return      void
+	 */
+	public void italicizeText(View view){
+		//Get text box and string from text box
+		EditText txtMsg = (EditText) findViewById(R.id.txtMessage);
+		String msg = txtMsg.getText().toString();
+		
+		if (txtMsg.getSelectionStart() == -1){	//if text has not been selected
+			Toast.makeText(getBaseContext(), "Please select text to italicize", Toast.LENGTH_SHORT).show();
+		} else {
+			//insert * before and after selected text
+			int selStart = txtMsg.getSelectionStart();
+			int selEnd = txtMsg.getSelectionEnd() + 1;
+			StringBuffer strbufMsg = new StringBuffer(msg);
+			strbufMsg.insert(selStart, "`");
+			strbufMsg.insert(selEnd, "`");
+			txtMsg.setText(strbufMsg.toString());
+			txtMsg.setSelection(selStart + 1, selEnd);
+		}
+	}
+	
+	/**
+	 * If text in txtMessage field is highlighted, place
+	 * underline tags around text. Otherwise, display a
+	 * toast telling the user to highlight text to be 
+	 * underlined.
+	 * @param  view view from compose activity. contains num and msg. 
+	 * @return      void
+	 */
+	public void underlineText(View view){
+		//Get text box and string from text box
+		EditText txtMsg = (EditText) findViewById(R.id.txtMessage);
+		String msg = txtMsg.getText().toString();
+		
+		if (txtMsg.getSelectionStart() == -1){	//if text has not been selected
+			Toast.makeText(getBaseContext(), "Please select text to underline", Toast.LENGTH_SHORT).show();
+		} else {
+			//insert _ before and after selected text
+			int selStart = txtMsg.getSelectionStart();
+			int selEnd = txtMsg.getSelectionEnd() + 1;
+			StringBuffer strbufMsg = new StringBuffer(msg);
+			strbufMsg.insert(selStart, "_");
+			strbufMsg.insert(selEnd, "_");
+			txtMsg.setText(strbufMsg.toString());
+			txtMsg.setSelection(selStart + 1, selEnd);
+		}
+	}
 } //close Compose class
