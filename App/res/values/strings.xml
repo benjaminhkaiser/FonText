@@ -3,8 +3,11 @@
 
     <string name="app_name">FonText</string>
     <string name="menu_settings">Settings</string>
-    <string name="phone_number">Phone Number:</string>
-    <string name="message">Message:</string>
-    <string name="send_button">Send</string>
+    <string name="hint_phone">To:</string>
+    <string name="hint_message">Message:</string>
+    <string name="button_bold"><b>Bold</b></string>
+    <string name="button_italics"><i>Italics</i></string>
+    <string name="button_underline"><u>Underline</u></string>
+    <string name="button_send">Send</string>
 
 </resources>

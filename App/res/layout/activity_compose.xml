@@ -10,21 +10,55 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:hint="To: "
+        android:hint="@string/hint_phone"
         android:inputType="phone" />
 
     <EditText
         android:id="@+id/txtMessage"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Message: "
+        android:layout_height="100dp"
+        android:layout_gravity="top"
+        android:hint="@string/hint_message"
         android:inputType="text" />
 
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        tools:context=".Compose" >
+
+        <Button
+            android:id="@+id/btnBold"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/button_bold" />
+
+        <Button
+            android:id="@+id/btnItalics"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/button_italics" />
+
+        <Button
+            android:id="@+id/btnUnderline"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/button_underline" />
+    </LinearLayout>
+      
     <Button
         android:id="@+id/btnSend"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:onClick="sendMessage"
-        android:text="@string/send_button" />
+        android:text="@string/button_send" />
 
 </LinearLayout>
