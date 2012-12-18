@@ -12,11 +12,10 @@ import android.text.Html;
 import android.view.Menu;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 public class Compose extends Activity {
-
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -32,11 +31,11 @@ public class Compose extends Activity {
 	
 	/**
 	 * Takes string with formatting symbols and returns same
-	 * string with HTML formatting.
+	 * string with parsable HTML formatting.
 	 * @param	msg	string containing raw formatting symbols
 	 * @return      string containing HTML formatting
 	 */
-	public String formatText(String msg){
+	public String decodeMessage(String msg){
 		while (msg.matches("(.*)(\\*)(.*)(\\*)(.*)")){
 			msg = msg.replaceFirst("\\*","<b>");
 			msg = msg.replaceFirst("\\*","</b>");
@@ -49,6 +48,21 @@ public class Compose extends Activity {
 			msg = msg.replaceFirst("\\_","<u>");
 			msg = msg.replaceFirst("\\_","</u>");
 		}
+		return msg;
+	}
+	
+	/**
+	 * Takes string with HTML formatting tags and returns
+	 * same string with shortcode formatting tags. This is
+	 * done to reduce size of message before sending.
+	 * @param	msg	string containing HTML tags
+	 * @return      string containing shortcode tags
+	 */
+	public String encodeMessage(String msg){
+		msg = msg.replace("<b>","*").replace("</b>","*");
+		msg = msg.replace("<i>","`").replace("</i>","`");
+		msg = msg.replace("<u>","_").replace("</u>","_");
+		
 		return msg;
 	}
 	
@@ -125,10 +139,7 @@ public class Compose extends Activity {
 		//initialize smsmanager and send SMS
 		SmsManager smsMgr = SmsManager.getDefault();
 		try{
-			smsMgr.sendTextMessage(destination,null,msg,piSent,piDelivered);
-			TextView lblPreview = (TextView) findViewById(R.id.lblPreview);
-			lblPreview.setText(Html.fromHtml(formatText(msg)));
-			//txtMsg.setText(Html.fromHtml(formatText(msg)));
+			smsMgr.sendTextMessage(destination,null,encodeMessage(msg),piSent,piDelivered);
 		} catch (IllegalArgumentException e){
 			Toast.makeText(getBaseContext(), "Please enter a number and message", Toast.LENGTH_SHORT).show();
 		}	// close catch	
@@ -152,13 +163,14 @@ public class Compose extends Activity {
 		} else {
 			//insert * before and after selected text
 			int selStart = txtMsg.getSelectionStart();
-			int selEnd = txtMsg.getSelectionEnd() + 1;
+			int selEnd = txtMsg.getSelectionEnd();
 			StringBuffer strbufMsg = new StringBuffer(msg);
 			strbufMsg.insert(selStart, "*");
 			strbufMsg.insert(selEnd, "*");
-			txtMsg.setText(strbufMsg.toString());
-			txtMsg.setSelection(selStart + 1, selEnd);
-		}
+			txtMsg.setText(Html.fromHtml(decodeMessage(strbufMsg.toString())));
+			
+			txtMsg.setSelection(selStart, selEnd);
+		}		
 	}
 	
 	/**
@@ -178,12 +190,13 @@ public class Compose extends Activity {
 		} else {
 			//insert * before and after selected text
 			int selStart = txtMsg.getSelectionStart();
-			int selEnd = txtMsg.getSelectionEnd() + 1;
+			int selEnd = txtMsg.getSelectionEnd();
 			StringBuffer strbufMsg = new StringBuffer(msg);
 			strbufMsg.insert(selStart, "`");
 			strbufMsg.insert(selEnd, "`");
-			txtMsg.setText(strbufMsg.toString());
-			txtMsg.setSelection(selStart + 1, selEnd);
+			txtMsg.setText(Html.fromHtml(decodeMessage(strbufMsg.toString())));
+			
+			txtMsg.setSelection(selStart, selEnd);
 		}
 	}
 	
@@ -205,12 +218,12 @@ public class Compose extends Activity {
 		} else {
 			//insert _ before and after selected text
 			int selStart = txtMsg.getSelectionStart();
-			int selEnd = txtMsg.getSelectionEnd() + 1;
+			int selEnd = txtMsg.getSelectionEnd();
 			StringBuffer strbufMsg = new StringBuffer(msg);
 			strbufMsg.insert(selStart, "_");
 			strbufMsg.insert(selEnd, "_");
-			txtMsg.setText(strbufMsg.toString());
-			txtMsg.setSelection(selStart + 1, selEnd);
+			txtMsg.setText(Html.fromHtml(decodeMessage(strbufMsg.toString())));
+			txtMsg.setSelection(selStart, selEnd);
 		}
 	}
 } //close Compose class
