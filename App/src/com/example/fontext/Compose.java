@@ -8,9 +8,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.telephony.SmsManager;
+import android.text.Html;
 import android.view.Menu;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class Compose extends Activity {
@@ -29,10 +31,32 @@ public class Compose extends Activity {
 	}
 	
 	/**
+	 * Takes string with formatting symbols and returns same
+	 * string with HTML formatting.
+	 * @param	msg	string containing raw formatting symbols
+	 * @return      string containing HTML formatting
+	 */
+	public String formatText(String msg){
+		while (msg.matches("(.*)(\\*)(.*)(\\*)(.*)")){
+			msg = msg.replaceFirst("\\*","<b>");
+			msg = msg.replaceFirst("\\*","</b>");
+		}
+		while (msg.matches("(.*)(\\`)(.*)(\\`)(.*)")){
+			msg = msg.replaceFirst("\\`","<i>");
+			msg = msg.replaceFirst("\\`","</i>");
+		}
+		while (msg.matches("(.*)(\\_)(.*)(\\_)(.*)")){
+			msg = msg.replaceFirst("\\_","<u>");
+			msg = msg.replaceFirst("\\_","</u>");
+		}
+		return msg;
+	}
+	
+	/**
 	 * Gets info from view, creates receivers to confirm send and
 	 * delivery, then sends SMS. If SMS succeeds, clear text fields
 	 * in view.
-	 * @param  view view from compose activity. contains num and msg. 
+	 * @param  view view from compose activity. contains num and msg.
 	 * @return      void
 	 */
 	public void sendMessage(View view){
@@ -101,7 +125,9 @@ public class Compose extends Activity {
 		//initialize smsmanager and send SMS
 		SmsManager smsMgr = SmsManager.getDefault();
 		try{
-			smsMgr.sendTextMessage(destination,null,msg,piSent,piDelivered);
+			//smsMgr.sendTextMessage(destination,null,msg,piSent,piDelivered);
+			TextView lblPreview = (TextView) findViewById(R.id.lblPreview);
+			lblPreview.setText(Html.fromHtml(formatText(msg)));
 		} catch (IllegalArgumentException e){
 			Toast.makeText(getBaseContext(), "Please enter a number and message", Toast.LENGTH_SHORT).show();
 		}	// close catch	

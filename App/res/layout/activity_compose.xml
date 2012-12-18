@@ -56,12 +56,18 @@
             android:onClick="underlineText"
             android:text="@string/button_underline" />
     </LinearLayout>
-      
+
     <Button
         android:id="@+id/btnSend"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:onClick="sendMessage"
         android:text="@string/button_send" />
+
+    <TextView
+        android:id="@+id/lblPreview"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
 </LinearLayout>
