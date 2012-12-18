@@ -125,9 +125,10 @@ public class Compose extends Activity {
 		//initialize smsmanager and send SMS
 		SmsManager smsMgr = SmsManager.getDefault();
 		try{
-			//smsMgr.sendTextMessage(destination,null,msg,piSent,piDelivered);
+			smsMgr.sendTextMessage(destination,null,msg,piSent,piDelivered);
 			TextView lblPreview = (TextView) findViewById(R.id.lblPreview);
 			lblPreview.setText(Html.fromHtml(formatText(msg)));
+			//txtMsg.setText(Html.fromHtml(formatText(msg)));
 		} catch (IllegalArgumentException e){
 			Toast.makeText(getBaseContext(), "Please enter a number and message", Toast.LENGTH_SHORT).show();
 		}	// close catch	
