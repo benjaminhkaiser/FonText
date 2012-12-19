@@ -166,7 +166,7 @@ public class Compose extends Activity {
 			int selEnd = txtMsg.getSelectionEnd();
 			StringBuffer strbufMsg = new StringBuffer(msg);
 			strbufMsg.insert(selStart, "*");
-			strbufMsg.insert(selEnd, "*");
+			strbufMsg.insert(selEnd + 1, "*");
 			txtMsg.setText(Html.fromHtml(decodeMessage(strbufMsg.toString())));
 			
 			txtMsg.setSelection(selStart, selEnd);
@@ -193,7 +193,7 @@ public class Compose extends Activity {
 			int selEnd = txtMsg.getSelectionEnd();
 			StringBuffer strbufMsg = new StringBuffer(msg);
 			strbufMsg.insert(selStart, "`");
-			strbufMsg.insert(selEnd, "`");
+			strbufMsg.insert(selEnd + 1, "`");
 			txtMsg.setText(Html.fromHtml(decodeMessage(strbufMsg.toString())));
 			
 			txtMsg.setSelection(selStart, selEnd);
@@ -221,7 +221,7 @@ public class Compose extends Activity {
 			int selEnd = txtMsg.getSelectionEnd();
 			StringBuffer strbufMsg = new StringBuffer(msg);
 			strbufMsg.insert(selStart, "_");
-			strbufMsg.insert(selEnd, "_");
+			strbufMsg.insert(selEnd + 1, "_");
 			txtMsg.setText(Html.fromHtml(decodeMessage(strbufMsg.toString())));
 			txtMsg.setSelection(selStart, selEnd);
 		}
