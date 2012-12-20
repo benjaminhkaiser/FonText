@@ -35,7 +35,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:onClick="boldText"
+            android:onClick="formatText"
+            android:tag="b"
             android:text="@string/button_bold" />
 
         <Button
@@ -44,7 +45,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:onClick="italicizeText"
+            android:onClick="formatText"
+            android:tag="i"
             android:text="@string/button_italics" />
 
         <Button
@@ -53,7 +55,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:onClick="underlineText"
+            android:onClick="formatText"
+            android:tag="u"
             android:text="@string/button_underline" />
     </LinearLayout>
 

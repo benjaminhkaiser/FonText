@@ -16,6 +16,8 @@ import android.widget.Toast;
 
 public class Compose extends Activity {
 	
+	public String globalMsg = "";
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -30,6 +32,7 @@ public class Compose extends Activity {
 	}
 	
 	/**
+	 * Helper fn: Converts shortcode to HTML tags.
 	 * Takes string with formatting symbols and returns same
 	 * string with parsable HTML formatting.
 	 * @param	msg	string containing raw formatting symbols
@@ -48,10 +51,12 @@ public class Compose extends Activity {
 			msg = msg.replaceFirst("\\_","<u>");
 			msg = msg.replaceFirst("\\_","</u>");
 		}
+				
 		return msg;
 	}
 	
 	/**
+	 * Helper fn: Convert HTML tags to shortcode.
 	 * Takes string with HTML formatting tags and returns
 	 * same string with shortcode formatting tags. This is
 	 * done to reduce size of message before sending.
@@ -62,8 +67,46 @@ public class Compose extends Activity {
 		msg = msg.replace("<b>","*").replace("</b>","*");
 		msg = msg.replace("<i>","`").replace("</i>","`");
 		msg = msg.replace("<u>","_").replace("</u>","_");
-		
+
 		return msg;
+	}
+	
+	/**
+	 * Helper fn: Insert character into text, ignoring HTML tags.
+	 * @param	text	text to be inserted into
+	 * @param	c		character to be inserted
+	 * @param	pos		index to insert character at	
+	 * @return			string with character inserted
+	 */
+	public String insertIntoFormattedText(String text, char c, int pos){
+		int i = 0;	//tracks actual position in string
+		int j = 0;	//tracks position in string not including tags
+		boolean blnInTag = false;
+		StringBuffer strbufText = new StringBuffer(text);
+		
+		while (i<text.length()-1){
+			if (text.charAt(i) == '<') {
+				blnInTag = true;	//set flag to indicate start of tag
+				i++;	//increment i but not j because we're in a tag
+				continue;	//skip to end of loop
+			} else if (text.charAt(i) == '>'){
+				blnInTag = false;	//set flag to indicate end of tag
+				i++;	//increment i but not j	because we're in a tag
+				continue;	//skip to end of loop
+			}
+			
+			//if position has been reached by j, insert char and break
+			if (j == pos && !blnInTag){
+				strbufText.insert(i, c);
+				break;
+			}
+			
+			i++;	//increment i			
+			if (!blnInTag)	j++;	//increment j if not in tag
+		
+		}
+
+		return strbufText.toString();
 	}
 	
 	/**
@@ -145,85 +188,39 @@ public class Compose extends Activity {
 		}	// close catch	
 		
 	} //close sendMessage()
-
-	/**
-	 * If text in txtMessage field is highlighted, place bold tags
-	 * around text. Otherwise, display a toast telling the user to
-	 * highlight text to be bolded.
-	 * @param  view view from compose activity. contains num and msg. 
-	 * @return      void
-	 */
-	public void boldText(View view){
-		//Get text box and string from text box
-		EditText txtMsg = (EditText) findViewById(R.id.txtMessage);
-		String msg = txtMsg.getText().toString();
-		
-		if (txtMsg.getSelectionStart() == -1){	//if text has not been selected
-			Toast.makeText(getBaseContext(), "Please select text to bold", Toast.LENGTH_SHORT).show();
-		} else {
-			//insert * before and after selected text
-			int selStart = txtMsg.getSelectionStart();
-			int selEnd = txtMsg.getSelectionEnd();
-			StringBuffer strbufMsg = new StringBuffer(msg);
-			strbufMsg.insert(selStart, "*");
-			strbufMsg.insert(selEnd + 1, "*");
-			txtMsg.setText(Html.fromHtml(decodeMessage(strbufMsg.toString())));
-			
-			txtMsg.setSelection(selStart, selEnd);
-		}		
-	}
 	
 	/**
-	 * If text in txtMessage field is highlighted, place italics
-	 * tags around text. Otherwise, display a toast telling the
-	 * user to highlight text to be italicized.
-	 * @param  view view from compose activity. contains num and msg. 
-	 * @return      void
+	 * Apply chosen formatting to highlighted text.
+	 * @param	view	view from compose activity. contains num, msg, and tag. 
+	 * @return			void
 	 */
-	public void italicizeText(View view){
+	public void formatText(View view){
+		char c = ' ';
+		if (view.getTag().equals("b")) c = '*';
+		if (view.getTag().equals("i")) c = '`';
+		if (view.getTag().equals("u")) c = '_';
+		
 		//Get text box and string from text box
 		EditText txtMsg = (EditText) findViewById(R.id.txtMessage);
-		String msg = txtMsg.getText().toString();
+		globalMsg = Html.toHtml(txtMsg.getText());
 		
-		if (txtMsg.getSelectionStart() == -1){	//if text has not been selected
-			Toast.makeText(getBaseContext(), "Please select text to italicize", Toast.LENGTH_SHORT).show();
-		} else {
-			//insert * before and after selected text
-			int selStart = txtMsg.getSelectionStart();
-			int selEnd = txtMsg.getSelectionEnd();
-			StringBuffer strbufMsg = new StringBuffer(msg);
-			strbufMsg.insert(selStart, "`");
-			strbufMsg.insert(selEnd + 1, "`");
-			txtMsg.setText(Html.fromHtml(decodeMessage(strbufMsg.toString())));
+		//remove excess HTML tags
+		globalMsg = globalMsg.replace("<p dir=ltr>", "").replace("</p>", "");
+		globalMsg = globalMsg.replace("\n","");
+				
+		//insert * before and after selected text
+		int selStart = txtMsg.getSelectionStart();
+		int selEnd = txtMsg.getSelectionEnd();
+		globalMsg = insertIntoFormattedText(globalMsg, c, selStart);
+		globalMsg = insertIntoFormattedText(globalMsg, c, selEnd + 1);
 			
-			txtMsg.setSelection(selStart, selEnd);
-		}
+		globalMsg = decodeMessage(globalMsg);
+		
+		//convert to HTML and update textbox with formatted text
+		txtMsg.setText(Html.fromHtml(decodeMessage(globalMsg)));
+		
+		//rehighlight right text
+		txtMsg.setSelection(selStart, selEnd);	
 	}
 	
-	/**
-	 * If text in txtMessage field is highlighted, place
-	 * underline tags around text. Otherwise, display a
-	 * toast telling the user to highlight text to be 
-	 * underlined.
-	 * @param  view view from compose activity. contains num and msg. 
-	 * @return      void
-	 */
-	public void underlineText(View view){
-		//Get text box and string from text box
-		EditText txtMsg = (EditText) findViewById(R.id.txtMessage);
-		String msg = txtMsg.getText().toString();
-		
-		if (txtMsg.getSelectionStart() == -1){	//if text has not been selected
-			Toast.makeText(getBaseContext(), "Please select text to underline", Toast.LENGTH_SHORT).show();
-		} else {
-			//insert _ before and after selected text
-			int selStart = txtMsg.getSelectionStart();
-			int selEnd = txtMsg.getSelectionEnd();
-			StringBuffer strbufMsg = new StringBuffer(msg);
-			strbufMsg.insert(selStart, "_");
-			strbufMsg.insert(selEnd + 1, "_");
-			txtMsg.setText(Html.fromHtml(decodeMessage(strbufMsg.toString())));
-			txtMsg.setSelection(selStart, selEnd);
-		}
-	}
 } //close Compose class
