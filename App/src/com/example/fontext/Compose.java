@@ -79,12 +79,21 @@ public class Compose extends Activity {
 	 * @return			string with character inserted
 	 */
 	public String insertIntoFormattedText(String text, char c, int pos){
+		//if character is to be inserted at the end, just do it and return
+		if (pos == text.length()) return text + c;
+		
 		int i = 0;	//tracks actual position in string
 		int j = 0;	//tracks position in string not including tags
 		boolean blnInTag = false;
 		StringBuffer strbufText = new StringBuffer(text);
 		
-		while (i<text.length()-1){
+		while (i<text.length()){
+
+			//if position has been reached by j, insert char and break
+			if (j == pos && !blnInTag){
+				strbufText.insert(i, c);
+				break;
+			}			
 			if (text.charAt(i) == '<') {
 				blnInTag = true;	//set flag to indicate start of tag
 				i++;	//increment i but not j because we're in a tag
@@ -94,13 +103,7 @@ public class Compose extends Activity {
 				i++;	//increment i but not j	because we're in a tag
 				continue;	//skip to end of loop
 			}
-			
-			//if position has been reached by j, insert char and break
-			if (j == pos && !blnInTag){
-				strbufText.insert(i, c);
-				break;
-			}
-			
+					
 			i++;	//increment i			
 			if (!blnInTag)	j++;	//increment j if not in tag
 		
