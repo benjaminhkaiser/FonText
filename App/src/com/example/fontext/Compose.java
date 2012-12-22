@@ -18,9 +18,6 @@ import android.widget.Toast;
 
 public class Compose extends Activity {
 	
-	//TODO: refactor to remove globalMsg. it's no longer necessary.
-	public String globalMsg = "";
-	
 	//Long click listener for bold button
 	private OnLongClickListener lngclkBold = new OnLongClickListener() {
 	    @Override
@@ -164,15 +161,12 @@ public class Compose extends Activity {
 	 * @return			string with character inserted
 	 */
 	public String insertIntoFormattedText(String text, char c, int pos){
-		//if character is to be inserted at the end, just do it and return
-		if (pos == text.length()) return text + c;
-		
 		int i = 0;	//tracks actual position in string
 		int j = 0;	//tracks position in string not including tags
 		boolean blnInTag = false;
 		StringBuffer strbufText = new StringBuffer(text);
 		
-		while (i<text.length()){
+		while (i <= text.length()){
 
 			//if position has been reached by j, insert char and break
 			if (j == pos && !blnInTag){
@@ -290,22 +284,22 @@ public class Compose extends Activity {
 		
 		//Get text box and string from text box
 		EditText txtMsg = (EditText) findViewById(R.id.txtMessage);
-		globalMsg = Html.toHtml(txtMsg.getText());
+		String text = Html.toHtml(txtMsg.getText());
 		
 		//remove excess HTML tags
-		globalMsg = globalMsg.replace("<p dir=ltr>", "").replace("</p>", "");
-		globalMsg = globalMsg.replace("\n","");
+		text = text.replace("<p dir=ltr>", "").replace("</p>", "");
+		text = text.replace("\n","");
 				
 		//insert * before and after selected text
 		int selStart = txtMsg.getSelectionStart();
 		int selEnd = txtMsg.getSelectionEnd();
-		globalMsg = insertIntoFormattedText(globalMsg, c, selStart);
-		globalMsg = insertIntoFormattedText(globalMsg, c, selEnd + 1);
+		text = insertIntoFormattedText(text, c, selStart);
+		text = insertIntoFormattedText(text, c, selEnd + 1);
 			
-		globalMsg = decodeMessage(globalMsg);
+		text = decodeMessage(text);
 		
 		//convert to HTML and update textbox with formatted text
-		txtMsg.setText(Html.fromHtml(decodeMessage(globalMsg)));
+		txtMsg.setText(Html.fromHtml(decodeMessage(text)));
 		
 		//rehighlight right text
 		txtMsg.setSelection(selStart, selEnd);	
