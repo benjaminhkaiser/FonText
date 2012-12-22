@@ -200,7 +200,6 @@ public class Compose extends Activity {
 	 */
 	public void sendMessage(View view){
 		String SENT = "SMS_SENT";
-        String DEL = "SMS_DELIVERED";
         
 		//get text fields from view, then strings from text fields
 		EditText txtDest = (EditText) findViewById(R.id.txtPhone);
@@ -212,9 +211,8 @@ public class Compose extends Activity {
 		txtDest.setText("");
 		txtMsg.setText("");
 		
-		//initialize pendingintents
+		//initialize pendingintent for send confirmation
 		PendingIntent piSent = PendingIntent.getBroadcast(this, 0, new Intent(SENT), 0);
-		PendingIntent piDelivered = PendingIntent.getBroadcast(this, 0, new Intent(DEL), 0);
 		
 		//set up intent receiver for sending
 		registerReceiver(new BroadcastReceiver(){
@@ -242,29 +240,10 @@ public class Compose extends Activity {
         }, new IntentFilter(SENT));
 		// on above line, } closes BroadcastReceiver constructor, ) closes registerReciever call
 		
-		//set up intent receiver for delivery
-        registerReceiver(new BroadcastReceiver(){
-			//override the onReceive function to display a toast containing error message
-            @Override
-            public void onReceive(Context arg0, Intent arg1) {	//args are unneeded
-                switch (getResultCode()) {
-                    case Activity.RESULT_OK:
-                        Toast.makeText(getBaseContext(), "SMS delivered successfully", 
-                                Toast.LENGTH_SHORT).show();
-                        break;
-                    case Activity.RESULT_CANCELED:
-                        Toast.makeText(getBaseContext(), "SMS not delivered", 
-                                Toast.LENGTH_SHORT).show();
-                        break;                        
-                }	//close switch
-            }	//close onReceive()
-        }, new IntentFilter(DEL));   
-        //on above line, } closes BroadcastReceiver constructor, ) closes registerReciever call
-		
 		//initialize smsmanager and send SMS
 		SmsManager smsMgr = SmsManager.getDefault();
 		try{
-			smsMgr.sendTextMessage(destination,null,encodeMessage(msg),piSent,piDelivered);
+			smsMgr.sendTextMessage(destination,null,encodeMessage(msg),piSent,null);
 		} catch (IllegalArgumentException e){
 			Toast.makeText(getBaseContext(), "Please enter a number and message", Toast.LENGTH_SHORT).show();
 		}	// close catch	
