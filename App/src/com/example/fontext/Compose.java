@@ -11,17 +11,85 @@ import android.telephony.SmsManager;
 import android.text.Html;
 import android.view.Menu;
 import android.view.View;
+import android.view.View.OnLongClickListener;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 public class Compose extends Activity {
 	
+	//TODO: refactor to remove globalMsg. it's no longer necessary.
 	public String globalMsg = "";
+	
+	//Long click listener for bold button
+	private OnLongClickListener lngclkBold = new OnLongClickListener() {
+	    @Override
+		public boolean onLongClick(View view) {
+	    	//Get text box and string from text box
+			EditText txtMsg = (EditText) findViewById(R.id.txtMessage);
+			String text = Html.toHtml(txtMsg.getText());
+			
+			//remove excess HTML tags
+			text = text.replace("<p dir=ltr>", "").replace("</p>", "");
+			text = text.replace("\n","");
+			
+			//remove bold tags
+			text = removeFormatting(text, 'b');
+			txtMsg.setText(Html.fromHtml(text));
+	    	return true;
+		}
+	};
+	
+	//Long click listener for italics button
+	private OnLongClickListener lngclkItalics = new OnLongClickListener() {
+	    @Override
+		public boolean onLongClick(View view) {
+	    	//Get text box and string from text box
+			EditText txtMsg = (EditText) findViewById(R.id.txtMessage);
+			String text = Html.toHtml(txtMsg.getText());
+			
+			//remove excess HTML tags
+			text = text.replace("<p dir=ltr>", "").replace("</p>", "");
+			text = text.replace("\n","");
+			
+			//remove italics tags
+			text = removeFormatting(text, 'i');
+			txtMsg.setText(Html.fromHtml(text));
+	    	return true;
+		}
+	};
+	
+	//Long click listener for underline button
+	private OnLongClickListener lngclkUnderline = new OnLongClickListener() {
+	    @Override
+		public boolean onLongClick(View view) {
+	    	//Get text box and string from text box
+			EditText txtMsg = (EditText) findViewById(R.id.txtMessage);
+			String text = Html.toHtml(txtMsg.getText());
+			
+			//remove excess HTML tags
+			text = text.replace("<p dir=ltr>", "").replace("</p>", "");
+			text = text.replace("\n","");
+			
+			//remove underline tags
+			text = removeFormatting(text, 'u');
+			txtMsg.setText(Html.fromHtml(text));
+	    	return true;
+		}
+	};
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_compose);
+		
+		//Register long click listeners defined above
+		Button btnBold = (Button)findViewById(R.id.btnBold);
+	    btnBold.setOnLongClickListener(lngclkBold);
+	    Button btnItalics = (Button)findViewById(R.id.btnItalics);
+	    btnItalics.setOnLongClickListener(lngclkItalics);
+	    Button btnUnderline = (Button)findViewById(R.id.btnUnderline);
+	    btnUnderline.setOnLongClickListener(lngclkUnderline);
 	}
 
 	@Override
@@ -29,6 +97,23 @@ public class Compose extends Activity {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.activity_compose, menu);
 		return true;
+	}
+	
+	/**
+	 * Helper fn: Removes formatting from text
+	 * @param text			text to be deformatted
+	 * @param formatType	type of formatting to be removed
+	 * @return				deformatted text
+	 */
+	public String removeFormatting(String text, char formatType){
+		if (formatType == 'b')
+			text = text.replaceAll("<b>", "").replaceAll("</b>", "");
+		else if (formatType == 'i')
+			text = text.replaceAll("<i>", "").replaceAll("</i>", "");
+		else if (formatType == 'u')
+			text = text.replaceAll("<u>", "").replaceAll("</u>", "");
+		
+		return text;
 	}
 	
 	/**

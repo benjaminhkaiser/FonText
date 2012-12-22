@@ -37,6 +37,7 @@
             android:layout_weight="1"
             android:onClick="formatText"
             android:tag="b"
+            android:longClickable="true"
             android:text="@string/button_bold" />
 
         <Button
@@ -47,6 +48,7 @@
             android:layout_weight="1"
             android:onClick="formatText"
             android:tag="i"
+            android:longClickable="true"
             android:text="@string/button_italics" />
 
         <Button
@@ -57,7 +59,9 @@
             android:layout_weight="1"
             android:onClick="formatText"
             android:tag="u"
+            android:longClickable="true"
             android:text="@string/button_underline" />
+        
     </LinearLayout>
 
     <Button
