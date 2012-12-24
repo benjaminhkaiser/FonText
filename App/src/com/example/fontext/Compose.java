@@ -192,9 +192,10 @@ public class Compose extends Activity {
 	}
 	
 	/**
-	 * Gets info from view, creates receivers to confirm send and
-	 * delivery, then sends SMS. If SMS succeeds, clear text fields
-	 * in view.
+	 * Gets info from view and sends SMS with send confirmation.
+	 * Gets message and phone nunmber from view, creates a receiver
+	 * to confirm send, then sends SMS. If SMS succeeds, clears
+	 * text fields in view.
 	 * @param  view view from compose activity. contains num and msg.
 	 * @return      void
 	 */
@@ -205,7 +206,11 @@ public class Compose extends Activity {
 		EditText txtDest = (EditText) findViewById(R.id.txtPhone);
 		EditText txtMsg = (EditText) findViewById(R.id.txtMessage);
 		String destination = txtDest.getText().toString();
-		String msg = txtMsg.getText().toString();
+		String msg = Html.toHtml(txtMsg.getText());
+		
+		//remove excess HTML tags from message
+		msg = msg.replace("<p dir=ltr>", "").replace("</p>", "");
+		msg = msg.replace("\n","");
 		
 		//clear text fields
 		txtDest.setText("");
@@ -221,7 +226,7 @@ public class Compose extends Activity {
             public void onReceive(Context arg0, Intent arg1) {	//args are unused
                 switch (getResultCode()) {
                     case Activity.RESULT_OK:
-                        Toast.makeText(getBaseContext(), "Text sent", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getBaseContext(), "Message sent", Toast.LENGTH_SHORT).show();
                         break;
                     case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
                         Toast.makeText(getBaseContext(), "Text failed", Toast.LENGTH_SHORT).show();
