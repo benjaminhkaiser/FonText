@@ -90,6 +90,14 @@ public class Compose extends Activity {
 	}
 
 	@Override
+	public void onDestroy() {
+	    super.onDestroy();  // Always call the superclass
+	    
+	    // Stop method tracing that the activity started during onCreate()
+	    android.os.Debug.stopMethodTracing();
+	}
+		
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.activity_compose, menu);
