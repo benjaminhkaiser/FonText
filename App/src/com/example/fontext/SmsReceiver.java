@@ -1,14 +1,19 @@
 package com.example.fontext;
 
+import android.annotation.TargetApi;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.telephony.SmsMessage;
-import android.widget.Toast;
+import android.text.Html;
 
 public class SmsReceiver extends BroadcastReceiver{
 	public static final String SMS_EXTRA_NAME = "pdus";
@@ -61,18 +66,22 @@ public class SmsReceiver extends BroadcastReceiver{
                  * For the meantime, or maybe permanently if that's a better solution, just
                  * don't do it here.        
                  */
-                //putSmsToDatabase(contentResolver, sms);
+                //addSmsToDatabase(contentResolver, sms);
             }
              
-            //Display toast containing message
-            //TODO: make this a notification instead of a toast
-            Toast.makeText(context, messages, Toast.LENGTH_SHORT ).show();
+            //Display notification         
+            displayNotification(messages, context);
         }
     }
 	
-	//TODO: After figuring out how to disable stock SMS app, remove warning supression
+	/**
+	 * Helper fn: inserts SMS into SMS database.
+	 * TODO: After figuring out how to disable stock SMS app, remove warning supression
+	 * @param contentResolver
+	 * @param sms	SmsMessage to be inserted into database
+	 */
 	@SuppressWarnings("unused")
-	private void putSmsToDatabase(ContentResolver contentResolver, SmsMessage sms) {
+	private void addSmsToDatabase(ContentResolver contentResolver, SmsMessage sms) {
 		// Create SMS row
         ContentValues values = new ContentValues();
         values.put(ADDRESS, sms.getOriginatingAddress());
@@ -85,8 +94,44 @@ public class SmsReceiver extends BroadcastReceiver{
         try { values.put(BODY, sms.getMessageBody()); } 
         catch (Exception e) { e.printStackTrace(); }
         
-        // Push row into the SMS table
+        //Push row into SMS table
         contentResolver.insert(Uri.parse(SMS_URI), values);
+	}
+
+	/**
+	 * Helper fn: Displays notification for received SMS's
+	 * Notification is expandable to show call and reply actions, but they
+	 * don't do anything yet.
+	 * Touching the notification simply opens up the compose view. Eventually
+	 * it will take you to the thread the message is regarding.
+	 * TODO: Add version for pre-JellyBean
+	 * TODO: Implement support for multiple notifications 
+	 * @param messages	String containing all messages to notify user about
+	 * @param context	Context to notify in
+	 */
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+	private void displayNotification(String messages, Context context){
+		//Create intent to be executed upon notification touch.
+		Intent intent = new Intent(context, Compose.class);
+		PendingIntent pIntent = PendingIntent.getActivity(context, 0, intent, 0);
+		
+		//Create and build notification
+		Notification noti = new Notification.Builder(context)
+        	.setContentTitle("New SMS")
+        	.setContentText(Html.fromHtml(messages)).setSmallIcon(R.drawable.ic_launcher)
+        	.setContentIntent(pIntent)
+        	.addAction(R.drawable.ic_launcher, "Call", pIntent)
+        	.addAction(R.drawable.ic_launcher, "Reply", pIntent).build();
+		
+		//Instantiate notification manager
+		NotificationManager notificationManager = 
+				  (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+		//Hide notification after it's touched
+		noti.flags |= Notification.FLAG_AUTO_CANCEL;
+
+		//Post notification to status bar
+		notificationManager.notify(0, noti);
 	}
 }
 
