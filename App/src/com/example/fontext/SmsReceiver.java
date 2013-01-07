@@ -64,7 +64,8 @@ public class SmsReceiver extends BroadcastReceiver{
                 //putSmsToDatabase(contentResolver, sms);
             }
              
-            // Display toast containing message
+            //Display toast containing message
+            //TODO: make this a notification instead of a toast
             Toast.makeText(context, messages, Toast.LENGTH_SHORT ).show();
         }
     }

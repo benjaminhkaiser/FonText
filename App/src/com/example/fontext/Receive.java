@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Html;
 import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
@@ -62,9 +63,15 @@ public class Receive extends Activity {
 		//Clear list of existing messages
 		smsList.clear();
 		
+		//Instantiate compose class object for access to decodeMessage() function
+		Compose comp = new Compose();
+		
 		//For every message in the database, create a string and add it to the smsList
 		do{
-			String message = "Sender: " + cursor.getString( indexAddr ) + "\n" + cursor.getString( indexBody );
+			//get message body and convert shortcode to HTML tags
+			String body = comp.decodeMessage(cursor.getString(indexBody));
+			String message = "Sender: " + cursor.getString(indexAddr) + "\n" + body;
+		
 			smsList.add(message);
 		}
 		while(cursor.moveToNext());
@@ -84,7 +91,7 @@ public class Receive extends Activity {
         			for (int i=1; i<splitted.length; ++i)
         			    data += splitted[i];
         			
-        			Toast.makeText(getBaseContext(), data, Toast.LENGTH_SHORT ).show();
+        			Toast.makeText(getBaseContext(), Html.fromHtml(data), Toast.LENGTH_SHORT ).show();
         		}	//close try
         		catch (Exception e) { e.printStackTrace(); }
         	}	//close onItemClick()

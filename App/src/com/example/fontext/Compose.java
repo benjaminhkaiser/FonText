@@ -287,9 +287,7 @@ public class Compose extends Activity {
 		int selEnd = txtMsg.getSelectionEnd();
 		text = insertIntoFormattedText(text, c, selStart);
 		text = insertIntoFormattedText(text, c, selEnd + 1);
-			
-		text = decodeMessage(text);
-		
+				
 		//convert to HTML and update textbox with formatted text
 		txtMsg.setText(Html.fromHtml(decodeMessage(text)));
 		
