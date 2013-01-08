@@ -37,13 +37,10 @@ public class SmsReceiver extends BroadcastReceiver{
     public static final int MESSAGE_IS_NOT_SEEN = 0;
     public static final int MESSAGE_IS_SEEN = 1;
 		
-	//TODO: After figuring out how to disable stock SMS app, remove warning supression    
-	@SuppressWarnings("unused")
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		// Get the SMS map from Intent
         Bundle extras = intent.getExtras();
-        String messages = "";
         
         if (extras != null){
             //Get received SMS array
@@ -54,33 +51,25 @@ public class SmsReceiver extends BroadcastReceiver{
             
             //Get messages from bundle
             for (int i=0; i<smsExtra.length; ++i){
-                SmsMessage sms = SmsMessage.createFromPdu((byte[])smsExtra[i]);
-                 
-                String body = sms.getMessageBody().toString();
-                String address = sms.getOriginatingAddress();
-                 
-                messages += "SMS from " + address + " :\n";                    
-                messages += body + "\n";
+            	
+            	//Create SmsMessage object and commit message to database
+                SmsMessage sms = SmsMessage.createFromPdu((byte[])smsExtra[i]);                     
+            	addSmsToDatabase(contentResolver, sms);
                 
-                /*TODO: Stop stock SMS app from receiving SMS's and storing to database.
-                 * For the meantime, or maybe permanently if that's a better solution, just
-                 * don't do it here.        
-                 */
-                //addSmsToDatabase(contentResolver, sms);
+                //Display notification         
+                displayNotification(sms, context);
             }
              
-            //Display notification         
-            displayNotification(messages, context);
+            //Stop SMS from being dispatched to other receivers
+            this.abortBroadcast();
         }
     }
 	
 	/**
 	 * Helper fn: inserts SMS into SMS database.
-	 * TODO: After figuring out how to disable stock SMS app, remove warning supression
 	 * @param contentResolver
 	 * @param sms	SmsMessage to be inserted into database
 	 */
-	@SuppressWarnings("unused")
 	private void addSmsToDatabase(ContentResolver contentResolver, SmsMessage sms) {
 		// Create SMS row
         ContentValues values = new ContentValues();
@@ -106,19 +95,22 @@ public class SmsReceiver extends BroadcastReceiver{
 	 * it will take you to the thread the message is regarding.
 	 * TODO: Add version for pre-JellyBean
 	 * TODO: Implement support for multiple notifications 
-	 * @param messages	String containing all messages to notify user about
+	 * @param sms	message to notify user about
 	 * @param context	Context to notify in
 	 */
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-	private void displayNotification(String messages, Context context){
-		//Create intent to be executed upon notification touch.
+	private void displayNotification(SmsMessage sms, Context context){
+		//Create intent to be executed upon notification touch
 		Intent intent = new Intent(context, Compose.class);
 		PendingIntent pIntent = PendingIntent.getActivity(context, 0, intent, 0);
+				
+		String notiText = "SMS from " + sms.getDisplayOriginatingAddress() + "\n";
+		notiText += sms.getDisplayMessageBody();
 		
 		//Create and build notification
 		Notification noti = new Notification.Builder(context)
         	.setContentTitle("New SMS")
-        	.setContentText(Html.fromHtml(messages)).setSmallIcon(R.drawable.ic_launcher)
+        	.setContentText(Html.fromHtml(notiText)).setSmallIcon(R.drawable.ic_launcher)
         	.setContentIntent(pIntent)
         	.addAction(R.drawable.ic_launcher, "Call", pIntent)
         	.addAction(R.drawable.ic_launcher, "Reply", pIntent).build();
