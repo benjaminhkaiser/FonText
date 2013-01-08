@@ -11,6 +11,6 @@
     <string name="button_send">Send</string>
     <string name="button_refresh">Refresh messages</string>
     <string name="button_compose">Compose</string>
-    <string name="title_activity_receive">Receive</string>
+    <string name="title_activity_inbox">Inbox</string>
 
 </resources>

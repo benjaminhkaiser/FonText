@@ -16,24 +16,24 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-public class Receive extends Activity {
+public class Inbox extends Activity {
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_receive);
+		setContentView(R.layout.activity_inbox);
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.activity_receive, menu);
+		getMenuInflater().inflate(R.menu.activity_inbox, menu);
 		return true;
 	}
 	
 	/**
 	 * Helper fn: launches compose activity
-	 * @param view	view of the Receive activity
+	 * @param view	view of the Inbox activity
 	 */
 	public void launchCompose(View view){
 		Intent intent = new Intent(this, Compose.class);
@@ -46,7 +46,7 @@ public class Receive extends Activity {
     
     /**
      * Refreshes listview with all SMS's in database. Called upon refresh btn press.
-     * @param view view of the Receive activity
+     * @param view view of the Inbox activity
      */
 	public void refreshMsgs(View view) {
 		//Instantiate a contentResolver to access SMS's stored in sms database
