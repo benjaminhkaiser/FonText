@@ -128,7 +128,7 @@ public class Compose extends Activity {
 	 * @param	msg	string containing raw formatting symbols
 	 * @return      string containing HTML formatting
 	 */
-	public String decodeMessage(String msg){
+	public static String decodeMessage(String msg){
 		while (msg.matches("(.*)(\\*)(.*)(\\*)(.*)")){
 			msg = msg.replaceFirst("\\*","<b>");
 			msg = msg.replaceFirst("\\*","</b>");

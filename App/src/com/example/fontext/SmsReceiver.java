@@ -57,7 +57,7 @@ public class SmsReceiver extends BroadcastReceiver{
             	addSmsToDatabase(contentResolver, sms);
                 
                 //Display notification         
-                displayNotification(sms, context);
+                displayNotification(sms, context, i+sms.getTimestampMillis());
             }
              
             //Stop SMS from being dispatched to other receivers
@@ -99,18 +99,16 @@ public class SmsReceiver extends BroadcastReceiver{
 	 * @param context	Context to notify in
 	 */
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-	private void displayNotification(SmsMessage sms, Context context){
+	private void displayNotification(SmsMessage sms, Context context, long uniqueID){
 		//Create intent to be executed upon notification touch
 		Intent intent = new Intent(context, Compose.class);
-		PendingIntent pIntent = PendingIntent.getActivity(context, 0, intent, 0);
-				
-		String notiText = "SMS from " + sms.getDisplayOriginatingAddress() + "\n";
-		notiText += sms.getDisplayMessageBody();
-		
+		PendingIntent pIntent = PendingIntent.getActivity(context, (int)uniqueID, intent, 0);
+
 		//Create and build notification
 		Notification noti = new Notification.Builder(context)
-        	.setContentTitle("New SMS")
-        	.setContentText(Html.fromHtml(notiText)).setSmallIcon(R.drawable.ic_launcher)
+        	.setContentTitle("SMS from " + sms.getDisplayOriginatingAddress())
+        	.setContentText(Html.fromHtml(Compose.decodeMessage(sms.getDisplayMessageBody())))
+        	.setSmallIcon(R.drawable.ic_launcher)
         	.setContentIntent(pIntent)
         	.addAction(R.drawable.ic_launcher, "Call", pIntent)
         	.addAction(R.drawable.ic_launcher, "Reply", pIntent).build();
@@ -123,7 +121,7 @@ public class SmsReceiver extends BroadcastReceiver{
 		noti.flags |= Notification.FLAG_AUTO_CANCEL;
 
 		//Post notification to status bar
-		notificationManager.notify(0, noti);
+		notificationManager.notify((int)uniqueID, noti);
 	}
 }
 

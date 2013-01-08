@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Html;
+import android.text.Spanned;
 import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
@@ -41,8 +42,7 @@ public class Inbox extends Activity {
 	}
 
 	//Global arraylist containing all SMSs.
-    ArrayList<String> smsList = new ArrayList<String>();
-    
+    ArrayList<Spanned> smsList = new ArrayList<Spanned>();
     
     /**
      * Refreshes listview with all SMS's in database. Called upon refresh btn press.
@@ -62,23 +62,20 @@ public class Inbox extends Activity {
 		
 		//Clear list of existing messages
 		smsList.clear();
-		
-		//Instantiate compose class object for access to decodeMessage() function
-		Compose comp = new Compose();
-		
+			
 		//For every message in the database, create a string and add it to the smsList
 		do{
 			//get message body and convert shortcode to HTML tags
-			String body = comp.decodeMessage(cursor.getString(indexBody));
+			String body = Compose.decodeMessage(cursor.getString(indexBody));
 			String message = "Sender: " + cursor.getString(indexAddr) + "\n" + body;
 		
-			smsList.add(message);
+			smsList.add(Html.fromHtml(message));
 		}
 		while(cursor.moveToNext());
 
 		//Get the listView and create an Adapter to convert each string into a list item
 		ListView smsListView = (ListView) findViewById(R.id.lstInbox);
-		smsListView.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, smsList));
+		smsListView.setAdapter(new ArrayAdapter<Spanned>(this, android.R.layout.simple_list_item_1, smsList));
 		
 		//Create the listener for list item clicks
 		smsListView.setOnItemClickListener(new OnItemClickListener(){
@@ -86,7 +83,8 @@ public class Inbox extends Activity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int pos, long id){
         		try{
-        		    String[] splitted = smsList.get(pos).split("\n"); 
+        			String message = Html.toHtml(smsList.get(pos)).replace("<p dir=ltr>", "").replace("</p>", "");
+        		    String[] splitted = message.split("\n"); 
         			String data = splitted[0] + "\n";
         			for (int i=1; i<splitted.length; ++i)
         			    data += splitted[i];
