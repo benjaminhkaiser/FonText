@@ -104,17 +104,17 @@ public class SmsReceiver extends BroadcastReceiver{
 		Intent intent = new Intent(context, Compose.class);
 		PendingIntent pIntent = PendingIntent.getActivity(context, 1, intent, 0);
 		
-		//If there are no objects in the result set, return. This should never happen.
-		if (!c.moveToNext()) return;
-		
 		if (c.getCount() == 1){		//if there is only one unread SMS
+			
+			c.moveToNext();
+			
 			//Get info from SMS
 			String address = c.getString(c.getColumnIndex(ADDRESS));
 		    String body = c.getString(c.getColumnIndex(BODY));
 		    
-			//Create and build notification
+			//Create notification
 			Notification.Builder noti = new Notification.Builder(context)
-	        	.setContentTitle("New SMS message from " + address)
+	        	.setContentTitle(address)
 	        	.setContentText(Html.fromHtml(Compose.decodeMessage(body)))
 	        	.setSmallIcon(R.drawable.ic_launcher)
 	        	.setContentIntent(pIntent)
@@ -129,16 +129,25 @@ public class SmsReceiver extends BroadcastReceiver{
 			//Post notification to status bar
 			notificationManager.notify(1, noti.build());
 		} else {					//if there are multiple unread SMS messages
-			//Create and build notification
+			//Create notification
 			Notification.Builder noti = new Notification.Builder(context)
 	        	.setContentTitle("New SMS messages")
 	        	.setContentText("You've received new SMS messages.")
 	        	.setContentInfo(String.valueOf(c.getCount()))
 	        	.setSmallIcon(R.drawable.ic_launcher)
 	        	.setContentIntent(pIntent)
-	        	.addAction(R.drawable.ic_launcher, "Call", pIntent)
-	        	.addAction(R.drawable.ic_launcher, "View Contact", pIntent)
 	        	.setAutoCancel(true);
+			
+			Notification.InboxStyle inboxStyle = new Notification.InboxStyle();
+			inboxStyle.setBigContentTitle("New SMS messages");
+				
+			while(c.moveToNext()){
+				String address = c.getString(c.getColumnIndex(ADDRESS));
+			    String body = c.getString(c.getColumnIndex(BODY));
+				inboxStyle.addLine(address + ": " + Html.fromHtml(Compose.decodeMessage(body)));
+			}
+			
+			noti.setStyle(inboxStyle);
 			
 			//Instantiate notification manager
 			NotificationManager notificationManager = 
