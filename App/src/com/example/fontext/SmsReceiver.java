@@ -9,6 +9,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -48,18 +49,15 @@ public class SmsReceiver extends BroadcastReceiver{
             
             //Get ContentResolver object for pushing encrypted SMS to incoming folder
             ContentResolver contentResolver = context.getContentResolver();
-            
-            //Get messages from bundle
+                      
+            //Get messages from bundle and commit to database
             for (int i=0; i<smsExtra.length; ++i){
-            	
-            	//Create SmsMessage object and commit message to database
                 SmsMessage sms = SmsMessage.createFromPdu((byte[])smsExtra[i]);                     
             	addSmsToDatabase(contentResolver, sms);
-                
-                //Display notification         
-                displayNotification(sms, context, i+sms.getTimestampMillis());
             }
-             
+            
+            displayNotification(context);
+                       
             //Stop SMS from being dispatched to other receivers
             this.abortBroadcast();
         }
@@ -67,7 +65,7 @@ public class SmsReceiver extends BroadcastReceiver{
 	
 	/**
 	 * Helper fn: inserts SMS into SMS database.
-	 * @param contentResolver
+	 * @param contentResolver	contentResolver for base application context
 	 * @param sms	SmsMessage to be inserted into database
 	 */
 	private void addSmsToDatabase(ContentResolver contentResolver, SmsMessage sms) {
@@ -89,39 +87,67 @@ public class SmsReceiver extends BroadcastReceiver{
 
 	/**
 	 * Helper fn: Displays notification for received SMS's
-	 * Notification is expandable to show call and reply actions, but they
+	 * Notification is expandable to show call and view contact actions, but they
 	 * don't do anything yet.
 	 * Touching the notification simply opens up the compose view. Eventually
 	 * it will take you to the thread the message is regarding.
 	 * TODO: Add version for pre-JellyBean
-	 * TODO: Implement support for multiple notifications 
-	 * @param sms	message to notify user about
-	 * @param context	Context to notify in
+	 * @param context	application context
 	 */
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-	private void displayNotification(SmsMessage sms, Context context, long uniqueID){
+	private void displayNotification(Context context){
+		//Query SMS inbox for unread messages
+		Uri uriInbox = Uri.parse("content://sms/inbox");
+        Cursor c = context.getContentResolver().query(uriInbox, null, "read = 0", null, null);
+        
 		//Create intent to be executed upon notification touch
 		Intent intent = new Intent(context, Compose.class);
-		PendingIntent pIntent = PendingIntent.getActivity(context, (int)uniqueID, intent, 0);
-
-		//Create and build notification
-		Notification noti = new Notification.Builder(context)
-        	.setContentTitle("SMS from " + sms.getDisplayOriginatingAddress())
-        	.setContentText(Html.fromHtml(Compose.decodeMessage(sms.getDisplayMessageBody())))
-        	.setSmallIcon(R.drawable.ic_launcher)
-        	.setContentIntent(pIntent)
-        	.addAction(R.drawable.ic_launcher, "Call", pIntent)
-        	.addAction(R.drawable.ic_launcher, "Reply", pIntent).build();
+		PendingIntent pIntent = PendingIntent.getActivity(context, 1, intent, 0);
 		
-		//Instantiate notification manager
-		NotificationManager notificationManager = 
-				  (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		//If there are no objects in the result set, return. This should never happen.
+		if (!c.moveToNext()) return;
+		
+		if (c.getCount() == 1){		//if there is only one unread SMS
+			//Get info from SMS
+			String address = c.getString(c.getColumnIndex(ADDRESS));
+		    String body = c.getString(c.getColumnIndex(BODY));
+		    
+			//Create and build notification
+			Notification.Builder noti = new Notification.Builder(context)
+	        	.setContentTitle("New SMS message from " + address)
+	        	.setContentText(Html.fromHtml(Compose.decodeMessage(body)))
+	        	.setSmallIcon(R.drawable.ic_launcher)
+	        	.setContentIntent(pIntent)
+	        	.addAction(R.drawable.ic_launcher, "Call", pIntent)
+	        	.addAction(R.drawable.ic_launcher, "View Contact", pIntent)
+	        	.setAutoCancel(true);
+			
+			//Instantiate notification manager
+			NotificationManager notificationManager = 
+					  (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-		//Hide notification after it's touched
-		noti.flags |= Notification.FLAG_AUTO_CANCEL;
+			//Post notification to status bar
+			notificationManager.notify(1, noti.build());
+		} else {					//if there are multiple unread SMS messages
+			//Create and build notification
+			Notification.Builder noti = new Notification.Builder(context)
+	        	.setContentTitle("New SMS messages")
+	        	.setContentText("You've received new SMS messages.")
+	        	.setContentInfo(String.valueOf(c.getCount()))
+	        	.setSmallIcon(R.drawable.ic_launcher)
+	        	.setContentIntent(pIntent)
+	        	.addAction(R.drawable.ic_launcher, "Call", pIntent)
+	        	.addAction(R.drawable.ic_launcher, "View Contact", pIntent)
+	        	.setAutoCancel(true);
+			
+			//Instantiate notification manager
+			NotificationManager notificationManager = 
+					  (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-		//Post notification to status bar
-		notificationManager.notify((int)uniqueID, noti);
+			//Post notification to status bar
+			notificationManager.notify(1, noti.build());
+		}
+		
 	}
 }
 
