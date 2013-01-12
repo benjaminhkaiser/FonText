@@ -23,6 +23,7 @@ public class Inbox extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_inbox);
+		refreshMsgs(this.getCurrentFocus());
 	}
 
 	@Override
@@ -65,9 +66,10 @@ public class Inbox extends Activity {
 			
 		//For every message in the database, create a string and add it to the smsList
 		do{
-			//get message body and convert shortcode to HTML tags
+			//get message and sender and convert shortcode in body to HTML tags
 			String body = Compose.decodeMessage(cursor.getString(indexBody));
-			String message = "Sender: " + cursor.getString(indexAddr) + "\n" + body;
+			String sender = SmsReceiver.getContactbyNumber(cursor.getString(indexAddr), this);
+			String message = sender + ": " + body;
 		
 			smsList.add(Html.fromHtml(message));
 		}
@@ -97,3 +99,4 @@ public class Inbox extends Activity {
 	}
 	
 }
+

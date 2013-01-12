@@ -163,7 +163,13 @@ public class SmsReceiver extends BroadcastReceiver{
 		}
 	}
 	
-	public String getContactbyNumber(String number, Context context) {
+	/**
+	 * Helper fn: given phone number, return matching contact name if it exists
+	 * @param number	phone number to lookup
+	 * @param context	base context of application
+	 * @return	contact name if contact exists, else original number
+	 */
+	public static String getContactbyNumber(String number, Context context) {
 	    Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number));
 	    String name = number;
 	    //String contactId = number;
