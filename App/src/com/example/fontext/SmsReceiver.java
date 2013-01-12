@@ -13,6 +13,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.BaseColumns;
+import android.provider.ContactsContract;
 import android.telephony.SmsMessage;
 import android.text.Html;
 
@@ -112,9 +114,12 @@ public class SmsReceiver extends BroadcastReceiver{
 			String address = c.getString(c.getColumnIndex(ADDRESS));
 		    String body = c.getString(c.getColumnIndex(BODY));
 		    
+		    //Get contact name and picture
+		    String name = getContactbyNumber(address, context);
+		    
 			//Create notification
 			Notification.Builder noti = new Notification.Builder(context)
-	        	.setContentTitle(address)
+	        	.setContentTitle(name)
 	        	.setContentText(Html.fromHtml(Compose.decodeMessage(body)))
 	        	.setSmallIcon(R.drawable.ic_launcher)
 	        	.setContentIntent(pIntent)
@@ -142,9 +147,9 @@ public class SmsReceiver extends BroadcastReceiver{
 			inboxStyle.setBigContentTitle("New SMS messages");
 				
 			while(c.moveToNext()){
-				String address = c.getString(c.getColumnIndex(ADDRESS));
 			    String body = c.getString(c.getColumnIndex(BODY));
-				inboxStyle.addLine(address + ": " + Html.fromHtml(Compose.decodeMessage(body)));
+			    String name = getContactbyNumber(c.getString(c.getColumnIndex(ADDRESS)), context);
+				inboxStyle.addLine(name + ": " + Html.fromHtml(Compose.decodeMessage(body)));
 			}
 			
 			noti.setStyle(inboxStyle);
@@ -156,7 +161,31 @@ public class SmsReceiver extends BroadcastReceiver{
 			//Post notification to status bar
 			notificationManager.notify(1, noti.build());
 		}
-		
 	}
+	
+	public String getContactbyNumber(String number, Context context) {
+	    Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number));
+	    String name = number;
+	    //String contactId = number;
+	    
+	    ContentResolver contentResolver = context.getContentResolver();
+	    Cursor contactLookup = contentResolver.query(uri, new String[] {BaseColumns._ID,
+	            ContactsContract.PhoneLookup.DISPLAY_NAME }, null, null, null);
+
+	    try {
+	        if (contactLookup != null && contactLookup.getCount() > 0) {
+	            contactLookup.moveToNext();
+	            name = contactLookup.getString(contactLookup.getColumnIndex(ContactsContract.Data.DISPLAY_NAME));
+	            //contactId = contactLookup.getString(contactLookup.getColumnIndex(BaseColumns._ID));
+	        }
+	    } finally {
+	        if (contactLookup != null) {
+	            contactLookup.close();
+	        }
+	    }
+
+	    return name;
+	}
+	
 }
 
