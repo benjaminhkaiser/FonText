@@ -15,7 +15,6 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 
 public class Inbox extends Activity {
 	
@@ -90,19 +89,24 @@ public class Inbox extends Activity {
 		
 		//Create the listener for list item clicks
 		smsListView.setOnItemClickListener(new OnItemClickListener(){
-			//On clicks, separate string into body and sender and print toast
+			//On clicks, go to conversation view
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int pos, long id){
-        		try{
-        			String message = Html.toHtml(conversationList.get(pos)).replace("<p dir=ltr>", "").replace("</p>", "");
-        		    String[] splitted = message.split("\n"); 
-        			String data = splitted[0] + "\n";
-        			for (int i=1; i<splitted.length; ++i)
-        			    data += splitted[i];
-        			
-        			Toast.makeText(getBaseContext(), Html.fromHtml(data), Toast.LENGTH_SHORT ).show();
-        		}	//close try
-        		catch (Exception e) { e.printStackTrace(); }
+            	//Find the conversation that was clicked
+            	Uri uriConvo = Uri.parse("content://mms-sms/conversations/");
+                Cursor conversationCursor = getContentResolver().query(uriConvo, null, null, null, "date desc");
+                conversationCursor.moveToPosition(pos);
+                
+                String address= conversationCursor.getString(conversationCursor.getColumnIndex("address"));   
+                //String address = cursor.getString(cursor.getColumnIndex("address"));  
+                String thread_id = conversationCursor.getString(conversationCursor.getColumnIndex("thread_id"));  
+
+                Intent conversation = new Intent(getBaseContext(), Conversation.class);
+                conversation.putExtra("thread_id", thread_id);
+                conversation.putExtra("address", address);
+                startActivity(conversation);
+
+                finish();
         	}	//close onItemClick()
         });	//close OnItemClickListener, then close setOnItemClickListener() and end line
 	}
