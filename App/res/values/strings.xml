@@ -12,7 +12,10 @@
     <string name="button_refresh">Refresh messages</string>
     <string name="button_compose">Compose</string>
     <string name="title_activity_inbox">Inbox</string>
-    <string name="hello_world">Hello world!</string>
     <string name="title_activity_conversation">Conversation</string>
+    <string name="hint_reply">Reply</string>
+    <string name="button_format">Format</string>
+    
+  
 
 </resources>
