@@ -93,17 +93,23 @@ public class Inbox extends Activity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int pos, long id){
             	//Find the conversation that was clicked
-            	Uri uriConvo = Uri.parse("content://mms-sms/conversations/");
+            	Uri uriConvo = Uri.parse("content://sms/conversations");
                 Cursor conversationCursor = getContentResolver().query(uriConvo, null, null, null, "date desc");
                 conversationCursor.moveToPosition(pos);
                 
-                String address= conversationCursor.getString(conversationCursor.getColumnIndex("address"));   
-                //String address = cursor.getString(cursor.getColumnIndex("address"));  
-                String thread_id = conversationCursor.getString(conversationCursor.getColumnIndex("thread_id"));  
-
+                //get Thread id
+                String thread_id = conversationCursor.getString(conversationCursor.getColumnIndex("thread_id"));
+                
+                //get sender name
+                String where = "thread_id=" + thread_id;
+    		    Cursor inboxCursor= getContentResolver().query(Uri.parse("content://sms/inbox"), null, where, null, "date desc");     		    
+    		    inboxCursor.moveToFirst();
+    		    String sender = inboxCursor.getString(inboxCursor.getColumnIndexOrThrow("address")).toString();
+    		    sender = SmsReceiver.getContactbyNumber(sender, getBaseContext());
+    		    
                 Intent conversation = new Intent(getBaseContext(), Conversation.class);
                 conversation.putExtra("thread_id", thread_id);
-                conversation.putExtra("address", address);
+                conversation.putExtra("sender", sender);
                 startActivity(conversation);
 
                 finish();
