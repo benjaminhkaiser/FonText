@@ -7,6 +7,7 @@
 
     <TextView
         android:id="@+id/lblPerson"
+        android:text="Person"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
@@ -14,45 +15,73 @@
         android:layout_alignParentTop="true"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    <EditText
-        android:id="@+id/txtReply"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:ems="10"
-        android:hint="@string/hint_reply" />
-
     <ListView
         android:id="@+id/lstConvoThread"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/txtReply"
+        android:layout_above="@+id/layoutConvoReply"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/lblPerson" >
 
     </ListView>
-
-    <SlidingDrawer
-        android:id="@+id/slddrwFormat"
+    
+    <LinearLayout
+        android:id="@+id/layoutConvoReply"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_above="@+id/layoutConvoFormat" >
+    
+	    <EditText
+	        android:id="@+id/txtReply"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentLeft="true"
+	        android:ems="10"
+	        android:hint="@string/hint_reply" />
+	    
+	    <Button
+	        android:id="@+id/btnReply"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentLeft="true"
+	        android:text="reply" />
+"
+	    
+	</LinearLayout>
+    
+    <LinearLayout
+        android:id="@+id/layoutConvoFormat"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignTop="@+id/txtReply"
-        android:layout_toRightOf="@+id/txtReply"
-        android:content="@+id/content"
-        android:handle="@+id/btnFormat" >
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true" >
 
-        <Button
-            android:id="@+id/btnFormat"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/button_format" />
+    	<Button
+    	    android:id="@+id/Bold"
+    	    style="?android:attr/buttonStyleSmall"
+    	    android:layout_width="wrap_content"
+    	    android:layout_height="wrap_content"
+    	    android:layout_weight="1"
+    	    android:text="b" />
+    	
+    	<Button
+    	    android:id="@+id/Ital"
+    	    style="?android:attr/buttonStyleSmall"
+    	    android:layout_width="wrap_content"
+    	    android:layout_height="wrap_content"
+    	    android:layout_weight="1"
+    	    android:text="i" />
+    	
+    	<Button
+    	    android:id="@+id/Und"
+    	    style="?android:attr/buttonStyleSmall"
+    	    android:layout_width="wrap_content"
+    	    android:layout_height="wrap_content"
+    	    android:layout_weight="1"
+    	    android:text="u" />
 
-        <LinearLayout
-            android:id="@+id/content"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" >
-        </LinearLayout>
-    </SlidingDrawer>
+    </LinearLayout>
 
 </RelativeLayout>
