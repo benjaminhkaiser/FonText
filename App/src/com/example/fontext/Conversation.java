@@ -131,8 +131,7 @@ public class Conversation extends Activity {
 	    sentCursor.moveToFirst();
 	    
 	    //Initialize list to hold messages in chronological order
-	    //ArrayList<Spanned> arylstConversation = new ArrayList<Spanned>();
-	    ArrayList<Sms> messages = new ArrayList<Sms>();
+	    ArrayList<Sms> arylstSmsMessages = new ArrayList<Sms>();
 	    
 	    //For every message in both cursor sets
 	    for (int i = 0; i < (inboxCursor.getCount() + sentCursor.getCount()); i++){    	
@@ -147,28 +146,36 @@ public class Conversation extends Activity {
 	    	//Add whichever message is less recent to the beginning of the list
 	    	if (recmsgTime > sentmsgTime){
 	    		try{
+	    			//Get body and sender address, then create Sms object and add to list
 	    			String body = Compose.decodeMessage(inboxCursor.getString(inboxCursor.getColumnIndex("body")));
 	    			String senderNum = inboxCursor.getString(inboxCursor.getColumnIndex("address"));
 	    			Sms msg = new Sms(Html.fromHtml(body), senderNum, recmsgTime, false);
-	    			messages.add(0, msg);
+	    			arylstSmsMessages.add(0, msg);
 	    			inboxCursor.moveToNext();
 	    		} catch (Exception e) {continue;}
 	    	} else {
 	    		try{
+	    			//Get body and device phone number, then create Sms object and add to list
 	    			String body = Compose.decodeMessage(sentCursor.getString(sentCursor.getColumnIndex("body")));
 	    			TelephonyManager tMgr = (TelephonyManager) getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
 	    			String senderNum = tMgr.getLine1Number();
 	    			Sms msg = new Sms(Html.fromHtml(body), senderNum, sentmsgTime, true);
-	    			messages.add(0, msg);
+	    			arylstSmsMessages.add(0, msg);
 	    			sentCursor.moveToNext();
 	    		} catch (Exception e) {continue;}
 	    	}
 	    }
 	    
-	    //Set up the adapter for the list and scroll to the bottom
+	    //Set up the adapter for the list.
 	    ListView conversationListView = (ListView) findViewById(R.id.lstConvoThread);
-		conversationListView.setAdapter(new SmsListAdapter(this, R.layout.smslistview_recd_item_row, messages));
-		conversationListView.setSelection(messages.size() - 1);
+		conversationListView.setAdapter(new SmsListAdapter(this, 0, arylstSmsMessages));
+		/* resourceId is being passed as 0 because it is determined on a line-by-line basis
+		 * by the adapter. It has to be able to apply difference layout resources to sent
+		 * messages versus received messages.
+		 */
+		
+		//Scroll to the bottom of the list
+		conversationListView.setSelection(arylstSmsMessages.size() - 1);
 	}
 
 	/**

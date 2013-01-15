@@ -13,6 +13,10 @@
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    
+    <!-- READ_PHONE_STATE needed to get phone number in 
+    Conversation.createConversationThread(). Eventually I'll find a way
+    to handle that without needing this permission but for now it's easier. -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
 
     <application

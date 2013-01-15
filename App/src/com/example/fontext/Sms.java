@@ -7,29 +7,30 @@ import android.text.Spanned;
  * @author Ben
  */
 public class Sms {
-	Spanned body;
-	String senderNumber;
-	//String senderName;
-	long timeSent;
-	boolean sent;	//true is sent, false is received
 	
-	public Sms(Spanned b, String snu, /*String sna,*/ long ts, boolean s){
+	//Local member variables
+	private Spanned body;
+	private String senderNumber;
+	private long timeSent;
+	private boolean sent;	//true is sent, false is received
+	
+	//Constructor
+	public Sms(Spanned b, String snu, long ts, boolean s){
 		body = b;
 		senderNumber = snu;
-		//senderName = sna;
 		timeSent = ts;
 		sent = s;
 	}
 	
+	//Modifier functions
 	public void setBody(Spanned b){ body = b; }
 	public void setSenderNum(String s){ senderNumber = s; }
-	//public void setSenderName(String s){ senderName = s; }
 	public void setTimeSent(long ts){ timeSent = ts; }
 	public void setSent(boolean s){ sent = s;}
 	
+	//Accessor functions
 	public Spanned getBody() {return body;}
 	public String getSenderNum() {return senderNumber;}
-	//public String getSenderName() {return senderName;}
 	public long getTimeSent() {return timeSent;}
 	public boolean getSent() {return sent;}
 }

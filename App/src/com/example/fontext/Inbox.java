@@ -76,6 +76,12 @@ public class Inbox extends Activity {
 				String sender = SmsReceiver.getContactbyNumber(address, this);
 				String message = sender + ": " + body;
 				
+				//If message is unread, highlight in red
+				//TODO: fix this... it's not working
+				if (inboxCursor.getInt(inboxCursor.getColumnIndex("read")) == 0){
+					message = "<font color=\"red\">" + message + "<\font>";
+				}
+				
 				conversationList.add(Html.fromHtml(message));
 		    }
 		
