@@ -30,7 +30,7 @@
         tools:context=".Compose" >
 
         <Button
-            android:id="@+id/btnBold"
+            android:id="@+id/btnCompBold"
             style="?android:attr/buttonStyleSmall"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -41,7 +41,7 @@
             android:text="@string/button_bold" />
 
         <Button
-            android:id="@+id/btnItalics"
+            android:id="@+id/btnCompItalics"
             style="?android:attr/buttonStyleSmall"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -52,7 +52,7 @@
             android:text="@string/button_italics" />
 
         <Button
-            android:id="@+id/btnUnderline"
+            android:id="@+id/btnCompUnderline"
             style="?android:attr/buttonStyleSmall"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

@@ -94,6 +94,8 @@ public class SmsReceiver extends BroadcastReceiver{
 	 * Touching the notification simply opens up the compose view. Eventually
 	 * it will take you to the thread the message is regarding.
 	 * TODO: Add version for pre-JellyBean
+	 * TODO: refresh conversation thread and inbox on SMS receipt
+	 * TODO: touching notification should take you to thread 
 	 * @param context	application context
 	 */
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)

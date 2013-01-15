@@ -81,11 +81,11 @@ public class Compose extends Activity {
 		setContentView(R.layout.activity_compose);
 		
 		//Register long click listeners defined above
-		Button btnBold = (Button)findViewById(R.id.btnBold);
+		Button btnBold = (Button)findViewById(R.id.btnCompBold);
 	    btnBold.setOnLongClickListener(lngclkBold);
-	    Button btnItalics = (Button)findViewById(R.id.btnItalics);
+	    Button btnItalics = (Button)findViewById(R.id.btnCompItalics);
 	    btnItalics.setOnLongClickListener(lngclkItalics);
-	    Button btnUnderline = (Button)findViewById(R.id.btnUnderline);
+	    Button btnUnderline = (Button)findViewById(R.id.btnCompUnderline);
 	    btnUnderline.setOnLongClickListener(lngclkUnderline);
 	}
 
@@ -110,7 +110,7 @@ public class Compose extends Activity {
 	 * @param formatType	type of formatting to be removed
 	 * @return				deformatted text
 	 */
-	public String removeFormatting(String text, char formatType){
+	public static String removeFormatting(String text, char formatType){
 		if (formatType == 'b')
 			text = text.replaceAll("<b>", "").replaceAll("</b>", "");
 		else if (formatType == 'i')
@@ -153,7 +153,7 @@ public class Compose extends Activity {
 	 * @param	msg	string containing HTML tags
 	 * @return      string containing shortcode tags
 	 */
-	public String encodeMessage(String msg){
+	public static String encodeMessage(String msg){
 		msg = msg.replace("<b>","*").replace("</b>","*");
 		msg = msg.replace("<i>","`").replace("</i>","`");
 		msg = msg.replace("<u>","_").replace("</u>","_");
@@ -168,7 +168,7 @@ public class Compose extends Activity {
 	 * @param	pos		index to insert character at	
 	 * @return			string with character inserted
 	 */
-	public String insertIntoFormattedText(String text, char c, int pos){
+	public static String insertIntoFormattedText(String text, char c, int pos){
 		int i = 0;	//tracks actual position in string
 		int j = 0;	//tracks position in string not including tags
 		boolean blnInTag = false;

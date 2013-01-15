@@ -44,7 +44,8 @@
 	        android:id="@+id/btnReply"
 	        android:layout_width="wrap_content"
 	        android:layout_height="match_parent"
-	        android:text="@string/button_send" />
+	        android:text="@string/button_send"
+	        android:onClick="sendMessage" />
 
 	</LinearLayout>
     
@@ -56,27 +57,36 @@
         android:layout_alignParentBottom="true" >
 
     	<Button
-    	    android:id="@+id/Bold"
+    	    android:id="@+id/btnReplyBold"
     	    style="?android:attr/buttonStyleSmall"
     	    android:layout_width="wrap_content"
     	    android:layout_height="wrap_content"
     	    android:layout_weight="1"
+    	    android:onClick="formatText"
+            android:tag="b"
+            android:longClickable="true"
     	    android:text="@string/button_bold" />
     	
     	<Button
-    	    android:id="@+id/Ital"
+    	    android:id="@+id/btnReplyItalics"
     	    style="?android:attr/buttonStyleSmall"
     	    android:layout_width="wrap_content"
     	    android:layout_height="wrap_content"
     	    android:layout_weight="1"
+    	    android:onClick="formatText"
+            android:tag="i"
+            android:longClickable="true"
     	    android:text="@string/button_italics" />
     	
     	<Button
-    	    android:id="@+id/Und"
+    	    android:id="@+id/btnReplyUnderline"
     	    style="?android:attr/buttonStyleSmall"
     	    android:layout_width="wrap_content"
     	    android:layout_height="wrap_content"
     	    android:layout_weight="1"
+    	    android:onClick="formatText"
+            android:tag="u"
+            android:longClickable="true"
     	    android:text="@string/button_underline" />
 
     </LinearLayout>
