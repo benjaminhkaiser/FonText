@@ -12,12 +12,11 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.telephony.SmsManager;
+import android.telephony.TelephonyManager;
 import android.text.Html;
-import android.text.Spanned;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnLongClickListener;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -132,7 +131,8 @@ public class Conversation extends Activity {
 	    sentCursor.moveToFirst();
 	    
 	    //Initialize list to hold messages in chronological order
-	    ArrayList<Spanned> arylstConversation = new ArrayList<Spanned>();
+	    //ArrayList<Spanned> arylstConversation = new ArrayList<Spanned>();
+	    ArrayList<Sms> messages = new ArrayList<Sms>();
 	    
 	    //For every message in both cursor sets
 	    for (int i = 0; i < (inboxCursor.getCount() + sentCursor.getCount()); i++){    	
@@ -147,14 +147,19 @@ public class Conversation extends Activity {
 	    	//Add whichever message is less recent to the beginning of the list
 	    	if (recmsgTime > sentmsgTime){
 	    		try{
-	    			String msg = sender + ": " + Compose.decodeMessage(inboxCursor.getString(inboxCursor.getColumnIndex("body")));
-	    			arylstConversation.add(0, Html.fromHtml(msg));
+	    			String body = Compose.decodeMessage(inboxCursor.getString(inboxCursor.getColumnIndex("body")));
+	    			String senderNum = inboxCursor.getString(inboxCursor.getColumnIndex("address"));
+	    			Sms msg = new Sms(Html.fromHtml(body), senderNum, recmsgTime, false);
+	    			messages.add(0, msg);
 	    			inboxCursor.moveToNext();
 	    		} catch (Exception e) {continue;}
 	    	} else {
 	    		try{
-	    			String msg = "Me: " + Compose.decodeMessage(sentCursor.getString(sentCursor.getColumnIndex("body")));
-	    			arylstConversation.add(0, Html.fromHtml(msg));
+	    			String body = Compose.decodeMessage(sentCursor.getString(sentCursor.getColumnIndex("body")));
+	    			TelephonyManager tMgr = (TelephonyManager) getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
+	    			String senderNum = tMgr.getLine1Number();
+	    			Sms msg = new Sms(Html.fromHtml(body), senderNum, sentmsgTime, true);
+	    			messages.add(0, msg);
 	    			sentCursor.moveToNext();
 	    		} catch (Exception e) {continue;}
 	    	}
@@ -162,8 +167,8 @@ public class Conversation extends Activity {
 	    
 	    //Set up the adapter for the list and scroll to the bottom
 	    ListView conversationListView = (ListView) findViewById(R.id.lstConvoThread);
-		conversationListView.setAdapter(new ArrayAdapter<Spanned>(this, android.R.layout.simple_list_item_1, arylstConversation));
-		conversationListView.setSelection(arylstConversation.size() - 1);
+		conversationListView.setAdapter(new SmsListAdapter(this, R.layout.smslistview_recd_item_row, messages));
+		conversationListView.setSelection(messages.size() - 1);
 	}
 
 	/**
