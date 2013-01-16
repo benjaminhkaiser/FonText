@@ -64,21 +64,26 @@ public class Inbox extends Activity {
 		do{
 			//get thread id, then get inbox messages related to that id 
 			String where = "thread_id=" + conversationCursor.getString(conversationCursor.getColumnIndex("thread_id"));
-		    Cursor inboxCursor= getContentResolver().query(Uri.parse("content://sms/inbox"), null, where, null, "date desc"); 
+		    Cursor msgCursor = getContentResolver().query(Uri.parse("content://sms/inbox"), null, where, null, "date desc"); 
 		    String address = "";
 		    
+		    //If there are no inbox messages, check sent messages. This means you have sent messages
+		    //to this contact but not received any yet.
+		    if (!msgCursor.moveToFirst()){
+		    	msgCursor = getContentResolver().query(Uri.parse("content://sms/sent"), null, where, null, "date desc");
+		    }
+		    
 		    //get address of conversation partner
-		    if (inboxCursor.moveToFirst()){
-		    	address = inboxCursor.getString(inboxCursor.getColumnIndexOrThrow("address")).toString();
+		    if (msgCursor.moveToFirst()){
+		    	address = msgCursor.getString(msgCursor.getColumnIndexOrThrow("address")).toString();
 
 		    	//get message and sender and convert shortcode in body to HTML tags
-		    	String body = Compose.decodeMessage(inboxCursor.getString(inboxCursor.getColumnIndex("body")));
+		    	String body = Compose.decodeMessage(msgCursor.getString(msgCursor.getColumnIndex("body")));
 				String sender = SmsReceiver.getContactbyNumber(address, this);
 				String message = sender + ": " + body;
 				
 				//If message is unread, highlight in red
-				//TODO: fix this... it's not working
-				if (inboxCursor.getInt(inboxCursor.getColumnIndex("read")) == 0){
+				if (msgCursor.getInt(msgCursor.getColumnIndex("read")) == 0){
 					message = "<font color=\"red\">" + message + "<\font>";
 				}
 				
@@ -107,12 +112,20 @@ public class Inbox extends Activity {
                 String thread_id = conversationCursor.getString(conversationCursor.getColumnIndex("thread_id"));
                 
                 //get sender name
+                String sender = "";
                 String where = "thread_id=" + thread_id;
-    		    Cursor inboxCursor= getContentResolver().query(Uri.parse("content://sms/inbox"), null, where, null, "date desc");     		    
-    		    inboxCursor.moveToFirst();
-    		    String sender = inboxCursor.getString(inboxCursor.getColumnIndexOrThrow("address")).toString();
-    		    sender = SmsReceiver.getContactbyNumber(sender, getBaseContext());
+                
+                //Try for received messages first. If none exist, look for sent messages.
+    		    Cursor inboxCursor = getContentResolver().query(Uri.parse("content://sms/inbox"), null, where, null, "date desc");     		    
+    		    if (inboxCursor.moveToFirst()){
+    		    	sender = inboxCursor.getString(inboxCursor.getColumnIndexOrThrow("address")).toString();
+    		    } else {
+    		    	Cursor sentCursor = getContentResolver().query(Uri.parse("content://sms/sent"), null, where, null, "date desc");
+    		    	sentCursor.moveToFirst();
+    		    	sender = sentCursor.getString(inboxCursor.getColumnIndexOrThrow("address")).toString();
+    		    }
     		    
+    		    sender = SmsReceiver.getContactbyNumber(sender, getBaseContext());
                 Intent conversation = new Intent(getBaseContext(), Conversation.class);
                 conversation.putExtra("thread_id", thread_id);
                 conversation.putExtra("sender", sender);

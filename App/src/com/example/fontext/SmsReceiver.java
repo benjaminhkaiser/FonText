@@ -95,7 +95,6 @@ public class SmsReceiver extends BroadcastReceiver{
 	 * it will take you to the thread the message is regarding.
 	 * TODO: Add version for pre-JellyBean
 	 * TODO: refresh conversation thread and inbox on SMS receipt
-	 * TODO: touching notification should take you to thread 
 	 * @param context	application context
 	 */
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
@@ -103,21 +102,22 @@ public class SmsReceiver extends BroadcastReceiver{
 		//Query SMS inbox for unread messages
 		Uri uriInbox = Uri.parse("content://sms/inbox");
         Cursor c = context.getContentResolver().query(uriInbox, null, "read = 0", null, null);
-        
-		//Create intent to be executed upon notification touch
-		Intent intent = new Intent(context, Compose.class);
-		PendingIntent pIntent = PendingIntent.getActivity(context, 1, intent, 0);
 		
 		if (c.getCount() == 1){		//if there is only one unread SMS
-			
 			c.moveToNext();
 			
 			//Get info from SMS
 			String address = c.getString(c.getColumnIndex(ADDRESS));
 		    String body = c.getString(c.getColumnIndex(BODY));
 		    
-		    //Get contact name and picture
+		    //Get contact name
 		    String name = getContactbyNumber(address, context);
+		    
+			//Create intent to be executed upon notification touch
+			Intent intent = new Intent(context, Conversation.class);
+			intent.putExtra("sender", name);
+			intent.putExtra("thread_id", c.getString(c.getColumnIndex("thread_id")));
+			PendingIntent pIntent = PendingIntent.getActivity(context, 1, intent, 0);
 		    
 			//Create notification
 			Notification.Builder noti = new Notification.Builder(context)
@@ -125,8 +125,8 @@ public class SmsReceiver extends BroadcastReceiver{
 	        	.setContentText(Html.fromHtml(Compose.decodeMessage(body)))
 	        	.setSmallIcon(R.drawable.ic_launcher)
 	        	.setContentIntent(pIntent)
-	        	.addAction(R.drawable.ic_launcher, "Call", pIntent)
-	        	.addAction(R.drawable.ic_launcher, "View Contact", pIntent)
+	        	//.addAction(R.drawable.ic_launcher, "Call", pIntent)
+	        	//.addAction(R.drawable.ic_launcher, "View Contact", pIntent)
 	        	.setAutoCancel(true);
 			
 			//Instantiate notification manager
@@ -136,6 +136,10 @@ public class SmsReceiver extends BroadcastReceiver{
 			//Post notification to status bar
 			notificationManager.notify(1, noti.build());
 		} else {					//if there are multiple unread SMS messages
+			//Create intent
+			Intent intent = new Intent(context, Inbox.class);
+			PendingIntent pIntent = PendingIntent.getActivity(context, 1, intent, 0);
+			
 			//Create notification
 			Notification.Builder noti = new Notification.Builder(context)
 	        	.setContentTitle("New SMS messages")
