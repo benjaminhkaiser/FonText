@@ -1,5 +1,6 @@
 package com.example.fontext;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -58,8 +59,8 @@ public class SmsReceiver extends BroadcastReceiver{
             	addSmsToDatabase(contentResolver, sms);
             }
             
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
-            	displayNotification(context);
+            //Display appropriate notification based on android version
+           	displayNotification(context, (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN));
             
             //Stop SMS from being dispatched to other receivers
             this.abortBroadcast();
@@ -87,36 +88,111 @@ public class SmsReceiver extends BroadcastReceiver{
         //Push row into SMS table
         contentResolver.insert(Uri.parse(SMS_URI), values);
 	}
-
+	
 	/**
-	 * Helper fn: Displays notification for received SMS's
-	 * Notification is expandable to show call and view contact actions, but they
-	 * don't do anything yet.
-	 * Touching the notification simply opens up the compose view. Eventually
-	 * it will take you to the thread the message is regarding.
-	 * TODO: Add version for pre-JellyBean
+	 * Helper fn: Displays notification for received SMS messages.
+	 * For single msg, touching notification goes to the conversation thread.
+	 * For multi msgs, it goes to the inbox.
+	 * In 4.1+:
+	 * Single msg noti is expandable to show (non-functional) options.
+	 * TODO: implement expanded options (call + view contact)
+	 * Multi msg noti is expandable to inbox-style view to show each msg
 	 * @param context	application context
+	 * @param isJB		boolean to store if api level is 4.1+ or not
 	 */
-	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-	private void displayNotification(Context context){
-		//Query SMS inbox for unread messages
+	@SuppressLint("NewApi") @SuppressWarnings("deprecation")
+	private void displayNotification(Context context, boolean isJB){
 		Uri uriInbox = Uri.parse("content://sms/inbox");
-        Cursor c = context.getContentResolver().query(uriInbox, null, "read = 0", null, null);
+		Cursor inboxCursor = context.getContentResolver().query(uriInbox, null, "read = 0", null, null);
 		
-		if (c.getCount() == 1){		//if there is only one unread SMS
-			c.moveToNext();
+		//initialize notification builder
+		Notification.Builder noti = new Notification.Builder(context);
+		
+		if (inboxCursor.getCount() == 1){		//if there is only one unread SMS
+			inboxCursor.moveToNext();
 			
 			//Get info from SMS
-			String address = c.getString(c.getColumnIndex(ADDRESS));
-		    String body = c.getString(c.getColumnIndex(BODY));
+			String address = inboxCursor.getString(inboxCursor.getColumnIndex(ADDRESS));
+		    String body = inboxCursor.getString(inboxCursor.getColumnIndex(BODY));
 		    
 		    //Get contact name
-		    String name = getContactbyNumber(address, context);
+		    String name = getContactNamebyNumber(address, context);
 		    
 			//Create intent to be executed upon notification touch
 			Intent intent = new Intent(context, Conversation.class);
 			intent.putExtra("sender", name);
-			intent.putExtra("thread_id", c.getString(c.getColumnIndex("thread_id")));
+			intent.putExtra("thread_id", inboxCursor.getString(inboxCursor.getColumnIndex("thread_id")));
+			PendingIntent pIntent = PendingIntent.getActivity(context, 1, intent, 0);
+		    
+			//Add info to notification
+			noti.setContentTitle(name)
+	        	.setContentText(Html.fromHtml(Compose.decodeMessage(body)))
+	        	.setSmallIcon(R.drawable.ic_launcher)
+	        	.setContentIntent(pIntent)
+	        	.setAutoCancel(true);
+			
+			//If api lvl is 4.1+, add expandable options
+			if (isJB){
+				noti.addAction(R.drawable.ic_launcher, "Call", pIntent)
+				.addAction(R.drawable.ic_launcher, "View Contact", pIntent);
+			}
+		} else {					//if there are multiple unread SMS messages
+			//Create intent
+			Intent intent = new Intent(context, Inbox.class);
+			PendingIntent pIntent = PendingIntent.getActivity(context, 1, intent, 0);
+			
+			//add info to notification
+			noti.setContentTitle("New SMS messages")
+	        	.setContentText("You've received new SMS messages.")
+	        	.setContentInfo(String.valueOf(inboxCursor.getCount()))
+	        	.setSmallIcon(R.drawable.ic_launcher)
+	        	.setContentIntent(pIntent)
+	        	.setAutoCancel(true);
+			
+			if (isJB){
+				Notification.InboxStyle inboxStyle = new Notification.InboxStyle();
+				inboxStyle.setBigContentTitle("New SMS messages");
+				
+				while(inboxCursor.moveToNext()){
+					String body = inboxCursor.getString(inboxCursor.getColumnIndex(BODY));
+					String name = getContactNamebyNumber(inboxCursor.getString(inboxCursor.getColumnIndex(ADDRESS)), context);
+					inboxStyle.addLine(name + ": " + Html.fromHtml(Compose.decodeMessage(body)));
+				}
+			
+				noti.setStyle(inboxStyle);
+			}
+		}
+		
+		//Instantiate notification manager
+		NotificationManager notificationManager = 
+				  (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		
+		//Post notification to status bar
+		if (isJB) notificationManager.notify(1, noti.build());
+		else notificationManager.notify(1, noti.getNotification());
+	}
+	
+
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+	private void displayJBNotification(Context context){
+		//Query SMS inbox for unread messages
+		Uri uriInbox = Uri.parse("content://sms/inbox");
+        Cursor inboxCursor = context.getContentResolver().query(uriInbox, null, "read = 0", null, null);
+		
+		if (inboxCursor.getCount() == 1){		//if there is only one unread SMS
+			inboxCursor.moveToNext();
+			
+			//Get info from SMS
+			String address = inboxCursor.getString(inboxCursor.getColumnIndex(ADDRESS));
+		    String body = inboxCursor.getString(inboxCursor.getColumnIndex(BODY));
+		    
+		    //Get contact name
+		    String name = getContactNamebyNumber(address, context);
+		    
+			//Create intent to be executed upon notification touch
+			Intent intent = new Intent(context, Conversation.class);
+			intent.putExtra("sender", name);
+			intent.putExtra("thread_id", inboxCursor.getString(inboxCursor.getColumnIndex("thread_id")));
 			PendingIntent pIntent = PendingIntent.getActivity(context, 1, intent, 0);
 		    
 			//Create notification
@@ -144,7 +220,7 @@ public class SmsReceiver extends BroadcastReceiver{
 			Notification.Builder noti = new Notification.Builder(context)
 	        	.setContentTitle("New SMS messages")
 	        	.setContentText("You've received new SMS messages.")
-	        	.setContentInfo(String.valueOf(c.getCount()))
+	        	.setContentInfo(String.valueOf(inboxCursor.getCount()))
 	        	.setSmallIcon(R.drawable.ic_launcher)
 	        	.setContentIntent(pIntent)
 	        	.setAutoCancel(true);
@@ -152,9 +228,9 @@ public class SmsReceiver extends BroadcastReceiver{
 			Notification.InboxStyle inboxStyle = new Notification.InboxStyle();
 			inboxStyle.setBigContentTitle("New SMS messages");
 				
-			while(c.moveToNext()){
-			    String body = c.getString(c.getColumnIndex(BODY));
-			    String name = getContactbyNumber(c.getString(c.getColumnIndex(ADDRESS)), context);
+			while(inboxCursor.moveToNext()){
+			    String body = inboxCursor.getString(inboxCursor.getColumnIndex(BODY));
+			    String name = getContactNamebyNumber(inboxCursor.getString(inboxCursor.getColumnIndex(ADDRESS)), context);
 				inboxStyle.addLine(name + ": " + Html.fromHtml(Compose.decodeMessage(body)));
 			}
 			
@@ -175,7 +251,7 @@ public class SmsReceiver extends BroadcastReceiver{
 	 * @param context	base context of application
 	 * @return	contact name if contact exists, else original number
 	 */
-	public static String getContactbyNumber(String number, Context context) {
+	public static String getContactNamebyNumber(String number, Context context) {
 	    Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number));
 	    String name = number;
 	    //String contactId = number;

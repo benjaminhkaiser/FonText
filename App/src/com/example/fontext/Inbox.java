@@ -97,7 +97,7 @@ public class Inbox extends Activity {
 
 		    	//get message and sender and convert shortcode in body to HTML tags
 		    	String body = Compose.decodeMessage(msgCursor.getString(msgCursor.getColumnIndex("body")));
-				String sender = SmsReceiver.getContactbyNumber(address, this);
+				String sender = SmsReceiver.getContactNamebyNumber(address, this);
 				String message = sender + ": " + body;
 				
 				//If message is unread, highlight in red
@@ -143,7 +143,7 @@ public class Inbox extends Activity {
     		    	sender = sentCursor.getString(sentCursor.getColumnIndexOrThrow("address")).toString();
     		    }
     		    
-    		    sender = SmsReceiver.getContactbyNumber(sender, getBaseContext());
+    		    sender = SmsReceiver.getContactNamebyNumber(sender, getBaseContext());
                 Intent conversation = new Intent(getBaseContext(), Conversation.class);
                 conversation.putExtra("thread_id", thread_id);
                 conversation.putExtra("sender", sender);
