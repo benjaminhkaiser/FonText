@@ -117,6 +117,13 @@ public class Conversation extends Activity {
 		return true;
 	}
 	
+	//TODO: This is a bad fix - it's just for usability while developing. Figure out how this is actually supposed to work.
+	@Override
+	public void onBackPressed(){
+		Intent intent = new Intent(this, Inbox.class);
+		startActivity(intent);
+	}
+	
 	/**
 	 * Create and display conversation thread of contact
 	 * @param sender	name of contact
