@@ -3,9 +3,12 @@ package com.example.fontext;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.text.Html;
@@ -253,10 +256,24 @@ public class Compose extends Activity {
         }, new IntentFilter(SENT));
 		// on above line, } closes BroadcastReceiver constructor, ) closes registerReciever call
 		
-		//initialize smsmanager and send SMS
+		//initialize smsmanager, send SMS, and add to database
 		SmsManager smsMgr = SmsManager.getDefault();
 		try{
 			smsMgr.sendTextMessage(destination,null,encodeMessage(msg),piSent,null);
+			
+			//TODO: This may fail when sending to a contact who doesn't have a conversation thread yet!
+			//Find the conversation pertaining to this contact, then get thread_id
+        	Uri uriConvo = Uri.parse("content://sms/conversations");
+            Cursor conversationCursor = getContentResolver().query(uriConvo, null, "address='"+destination+"'", null, "date desc");
+            conversationCursor.moveToFirst();
+            String thread_id = conversationCursor.getString(conversationCursor.getColumnIndex("thread_id"));
+            
+            //Create row in SMS table and insert it
+			ContentValues values = new ContentValues();
+		    values.put("address", destination);
+		    values.put("body", msg);
+		    values.put("thread_id", thread_id);
+		    getContentResolver().insert(Uri.parse("content://sms/sent"), values); 
 		} catch (IllegalArgumentException e){
 			Toast.makeText(getBaseContext(), "Please enter a number and message", Toast.LENGTH_SHORT).show();
 		}	// close catch	
