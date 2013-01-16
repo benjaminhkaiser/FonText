@@ -56,7 +56,6 @@ public class Inbox extends Activity {
      * @param view view of the Inbox activity
      */
 	public void refreshMsgs(View view) {
-		
 		//Instantiate a contentResolver to access SMS conversations
 		ContentResolver contentResolver = getContentResolver();
 		Cursor conversationCursor = contentResolver.query(Uri.parse("content://sms/conversations"), null, null, null, "date desc");
@@ -85,6 +84,7 @@ public class Inbox extends Activity {
 		    		long recmsgTime= msgCursor.getLong(msgCursor.getColumnIndex("date"));
 		    		long sentmsgTime = msgSentCursor.getLong(msgSentCursor.getColumnIndex("date"));
 		    		if (sentmsgTime > recmsgTime){
+		    			msgCursor.close();
 		    			msgCursor = msgSentCursor;
 		    		}
 		    	}

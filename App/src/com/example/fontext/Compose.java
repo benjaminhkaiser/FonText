@@ -261,18 +261,20 @@ public class Compose extends Activity {
 		try{
 			smsMgr.sendTextMessage(destination,null,encodeMessage(msg),piSent,null);
 			
-			//TODO: This may fail when sending to a contact who doesn't have a conversation thread yet!
-			//Find the conversation pertaining to this contact, then get thread_id
-        	Uri uriConvo = Uri.parse("content://sms/conversations");
-            Cursor conversationCursor = getContentResolver().query(uriConvo, null, "address='"+destination+"'", null, "date desc");
-            conversationCursor.moveToFirst();
-            String thread_id = conversationCursor.getString(conversationCursor.getColumnIndex("thread_id"));
-            
-            //Create row in SMS table and insert it
+			//Create contentvalues to insert into contentresolver
 			ContentValues values = new ContentValues();
 		    values.put("address", destination);
 		    values.put("body", msg);
-		    values.put("thread_id", thread_id);
+		    
+			//Find conversation, then get thread_id if there is one. If not, one will be generated automatically.
+        	Uri uriConvo = Uri.parse("content://sms/conversations");
+            Cursor conversationCursor = getContentResolver().query(uriConvo, null, "address='"+destination+"'", null, "date desc");
+            if (conversationCursor.moveToFirst()){
+            	String thread_id = conversationCursor.getString(conversationCursor.getColumnIndex("thread_id"));
+    		    values.put("thread_id", thread_id);
+            }
+            
+            //insert row into table
 		    getContentResolver().insert(Uri.parse("content://sms/sent"), values); 
 		} catch (IllegalArgumentException e){
 			Toast.makeText(getBaseContext(), "Please enter a number and message", Toast.LENGTH_SHORT).show();

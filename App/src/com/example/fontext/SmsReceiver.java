@@ -58,7 +58,8 @@ public class SmsReceiver extends BroadcastReceiver{
             	addSmsToDatabase(contentResolver, sms);
             }
             
-            displayNotification(context);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
+            	displayNotification(context);
             
             //Stop SMS from being dispatched to other receivers
             this.abortBroadcast();
