@@ -24,6 +24,13 @@ public class Inbox extends Activity {
 		setContentView(R.layout.activity_inbox);
 		refreshMsgs(this.getCurrentFocus());
 	}
+	
+	@Override
+	public void onResume()
+	{
+	    refreshMsgs(this.getCurrentFocus());
+	    super.onResume();
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -45,7 +52,7 @@ public class Inbox extends Activity {
     ArrayList<Spanned> conversationList = new ArrayList<Spanned>();
     
     /**
-     * Refreshes listview with all SMS's in database. Called upon refresh btn press.
+     * Refreshes listview with all SMS's in database. Called upon create and resume.
      * @param view view of the Inbox activity
      */
 	public void refreshMsgs(View view) {
@@ -68,9 +75,20 @@ public class Inbox extends Activity {
 		    String address = "";
 		    
 		    //If there are no inbox messages, check sent messages. This means you have sent messages
-		    //to this contact but not received any yet.
+		    //to this contact but not received any yet. If there are inbox messages, compare with the
+		    //sent messages and see which is more recent. 
 		    if (!msgCursor.moveToFirst()){
 		    	msgCursor = getContentResolver().query(Uri.parse("content://sms/sent"), null, where, null, "date desc");
+		    } else {
+		    	Cursor msgSentCursor = getContentResolver().query(Uri.parse("content://sms/sent"), null, where, null, "date desc");
+		    	if (msgSentCursor.moveToFirst()){
+		    		long recmsgTime= msgCursor.getLong(msgCursor.getColumnIndex("date"));
+		    		long sentmsgTime = msgSentCursor.getLong(msgSentCursor.getColumnIndex("date"));
+		    		if (sentmsgTime > recmsgTime){
+		    			msgCursor = msgSentCursor;
+		    		}
+		    	}
+		    	
 		    }
 		    
 		    //get address of conversation partner
@@ -122,7 +140,7 @@ public class Inbox extends Activity {
     		    } else {
     		    	Cursor sentCursor = getContentResolver().query(Uri.parse("content://sms/sent"), null, where, null, "date desc");
     		    	sentCursor.moveToFirst();
-    		    	sender = sentCursor.getString(inboxCursor.getColumnIndexOrThrow("address")).toString();
+    		    	sender = sentCursor.getString(sentCursor.getColumnIndexOrThrow("address")).toString();
     		    }
     		    
     		    sender = SmsReceiver.getContactbyNumber(sender, getBaseContext());

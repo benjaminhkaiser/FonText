@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -106,7 +107,7 @@ public class Conversation extends Activity {
 		TextView lblPerson = (TextView) findViewById(R.id.lblPerson);
 		lblPerson.setText(sender);
 		
-		createConversationThread(sender, thread_id);
+		refreshConversationThread(sender, thread_id);
 	}
 
 	@Override
@@ -121,7 +122,7 @@ public class Conversation extends Activity {
 	 * @param sender	name of contact
 	 * @param thread_id	thread_id of conversation thread
 	 */
-	public void createConversationThread(String sender, String thread_id){
+	public void refreshConversationThread(String sender, String thread_id){
 		
 		//Get cursors for sent and received messages
 		String where = "thread_id=" + thread_id;
@@ -267,10 +268,15 @@ public class Conversation extends Activity {
         }, new IntentFilter(SENT));
 		// on above line, } closes BroadcastReceiver constructor, ) closes registerReciever call
 		
-		//initialize smsmanager and send SMS
+		//initialize smsmanager, send SMS, and add to database
 		SmsManager smsMgr = SmsManager.getDefault();
 		try{
 			smsMgr.sendTextMessage(destination,null,Compose.encodeMessage(msg),piSent,null);
+			ContentValues values = new ContentValues();
+		    values.put("address", destination);
+		    values.put("body", msg);
+		    values.put("thread_id", thread_id);
+		    getContentResolver().insert(Uri.parse("content://sms/sent"), values); 
 		} catch (IllegalArgumentException e){
 			Toast.makeText(getBaseContext(), "Please enter a message", Toast.LENGTH_SHORT).show();
 		}	// close catch	

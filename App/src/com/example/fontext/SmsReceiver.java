@@ -59,7 +59,7 @@ public class SmsReceiver extends BroadcastReceiver{
             }
             
             displayNotification(context);
-                       
+            
             //Stop SMS from being dispatched to other receivers
             this.abortBroadcast();
         }
@@ -94,7 +94,6 @@ public class SmsReceiver extends BroadcastReceiver{
 	 * Touching the notification simply opens up the compose view. Eventually
 	 * it will take you to the thread the message is regarding.
 	 * TODO: Add version for pre-JellyBean
-	 * TODO: refresh conversation thread and inbox on SMS receipt
 	 * @param context	application context
 	 */
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
