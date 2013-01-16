@@ -211,6 +211,7 @@ public class Compose extends Activity {
 	 * @return      void
 	 */
 	public void sendMessage(View view){
+		//TODO: allow contact name to be entered into address field
 		String SENT = "SMS_SENT";
         
 		//get text fields from view, then strings from text fields

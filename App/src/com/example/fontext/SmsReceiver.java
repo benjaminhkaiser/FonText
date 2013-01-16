@@ -116,7 +116,7 @@ public class SmsReceiver extends BroadcastReceiver{
 		    String body = inboxCursor.getString(inboxCursor.getColumnIndex(BODY));
 		    
 		    //Get contact name
-		    String name = getContactNamebyNumber(address, context);
+		    String name = getContactbyNumber(address, context, true);
 		    
 			//Create intent to be executed upon notification touch
 			Intent intent = new Intent(context, Conversation.class);
@@ -133,8 +133,20 @@ public class SmsReceiver extends BroadcastReceiver{
 			
 			//If api lvl is 4.1+, add expandable options
 			if (isJB){
-				noti.addAction(R.drawable.ic_launcher, "Call", pIntent)
-				.addAction(R.drawable.ic_launcher, "View Contact", pIntent);
+				//Set up intent to call contact
+			    Intent callIntent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:"+address));
+			    PendingIntent pCallIntent = PendingIntent.getActivity(context, 1, callIntent, 0);
+				Intent viewIntent = new Intent(Intent.ACTION_VIEW);
+				
+				//Set up intent to view contact
+				String contactId = getContactbyNumber(address, context, false);
+				Uri uriContact = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_URI, contactId);
+				viewIntent.setData(uriContact);
+				PendingIntent pViewIntent = PendingIntent.getActivity(context, 1, viewIntent, 0);
+
+				//Add expandable options
+				noti.addAction(R.drawable.ic_launcher, "Call", pCallIntent)
+					.addAction(R.drawable.ic_launcher, "View Contact", pViewIntent);
 			}
 		} else {					//if there are multiple unread SMS messages
 			//Create intent
@@ -155,7 +167,7 @@ public class SmsReceiver extends BroadcastReceiver{
 				
 				while(inboxCursor.moveToNext()){
 					String body = inboxCursor.getString(inboxCursor.getColumnIndex(BODY));
-					String name = getContactNamebyNumber(inboxCursor.getString(inboxCursor.getColumnIndex(ADDRESS)), context);
+					String name = getContactbyNumber(inboxCursor.getString(inboxCursor.getColumnIndex(ADDRESS)), context, true);
 					inboxStyle.addLine(name + ": " + Html.fromHtml(Compose.decodeMessage(body)));
 				}
 			
@@ -187,7 +199,7 @@ public class SmsReceiver extends BroadcastReceiver{
 		    String body = inboxCursor.getString(inboxCursor.getColumnIndex(BODY));
 		    
 		    //Get contact name
-		    String name = getContactNamebyNumber(address, context);
+		    String name = getContactbyNumber(address, context, true);
 		    
 			//Create intent to be executed upon notification touch
 			Intent intent = new Intent(context, Conversation.class);
@@ -230,7 +242,7 @@ public class SmsReceiver extends BroadcastReceiver{
 				
 			while(inboxCursor.moveToNext()){
 			    String body = inboxCursor.getString(inboxCursor.getColumnIndex(BODY));
-			    String name = getContactNamebyNumber(inboxCursor.getString(inboxCursor.getColumnIndex(ADDRESS)), context);
+			    String name = getContactbyNumber(inboxCursor.getString(inboxCursor.getColumnIndex(ADDRESS)), context, true);
 				inboxStyle.addLine(name + ": " + Html.fromHtml(Compose.decodeMessage(body)));
 			}
 			
@@ -247,14 +259,15 @@ public class SmsReceiver extends BroadcastReceiver{
 	
 	/**
 	 * Helper fn: given phone number, return matching contact name if it exists
-	 * @param number	phone number to lookup
-	 * @param context	base context of application
+	 * @param number		phone number to lookup
+	 * @param context		base context of application
+	 * @param returnName	if true, return contact name. if false, return contactid.	
 	 * @return	contact name if contact exists, else original number
 	 */
-	public static String getContactNamebyNumber(String number, Context context) {
+	public static String getContactbyNumber(String number, Context context, boolean returnName) {
 	    Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number));
 	    String name = number;
-	    //String contactId = number;
+	    String contactId = "";
 	    
 	    ContentResolver contentResolver = context.getContentResolver();
 	    Cursor contactLookup = contentResolver.query(uri, new String[] {BaseColumns._ID,
@@ -264,7 +277,7 @@ public class SmsReceiver extends BroadcastReceiver{
 	        if (contactLookup != null && contactLookup.getCount() > 0) {
 	            contactLookup.moveToNext();
 	            name = contactLookup.getString(contactLookup.getColumnIndex(ContactsContract.Data.DISPLAY_NAME));
-	            //contactId = contactLookup.getString(contactLookup.getColumnIndex(BaseColumns._ID));
+	            contactId = contactLookup.getString(contactLookup.getColumnIndex(BaseColumns._ID));
 	        }
 	    } finally {
 	        if (contactLookup != null) {
@@ -272,7 +285,8 @@ public class SmsReceiver extends BroadcastReceiver{
 	        }
 	    }
 
-	    return name;
+	    if (returnName) return name;
+	    else return contactId;
 	}
 	
 }

@@ -130,13 +130,23 @@ public class Conversation extends Activity {
 	 * @param thread_id	thread_id of conversation thread
 	 */
 	public void refreshConversationThread(String sender, String thread_id){
-		
 		//Get cursors for sent and received messages
 		String where = "thread_id=" + thread_id;
 	    Cursor inboxCursor = getContentResolver().query(Uri.parse("content://sms/inbox"), null, where, null, "date desc");
-	    inboxCursor.moveToFirst();
 	    Cursor sentCursor = getContentResolver().query(Uri.parse("content://sms/sent"), null, where, null, "date desc");
 	    sentCursor.moveToFirst();
+	    
+	    //Mark all unread messages in conversation as read
+	    if (inboxCursor.moveToFirst()){
+	    	while (inboxCursor.getInt(inboxCursor.getColumnIndex("read")) == 0){
+	    		String msgId = inboxCursor.getString(inboxCursor.getColumnIndex("_id"));
+			    ContentValues values = new ContentValues();
+			    values.put("read",true);
+			    getContentResolver().update(Uri.parse("content://sms/inbox"), values, "_id="+msgId, null);
+			    inboxCursor.moveToNext();
+	    	}
+	    	inboxCursor.moveToFirst();
+	    }
 	    
 	    //Initialize list to hold messages in chronological order
 	    ArrayList<Sms> arylstSmsMessages = new ArrayList<Sms>();
