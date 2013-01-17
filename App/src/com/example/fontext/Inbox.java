@@ -1,6 +1,7 @@
 package com.example.fontext;
 
 import java.util.ArrayList;
+
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Intent;
@@ -8,10 +9,15 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Html;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
+import android.widget.TextView;
 
 public class Inbox extends Activity {
 	
@@ -58,6 +64,7 @@ public class Inbox extends Activity {
 	  }
 	  return true;
 	}*/
+	
 	
 	/**
 	 * Helper fn: launches compose activity

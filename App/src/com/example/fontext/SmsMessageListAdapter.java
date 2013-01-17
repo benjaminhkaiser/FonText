@@ -17,7 +17,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-
 /**
  * Custom adapter to convert list of SMS messages into a listview.
  * The SMS messages are stored as Sms objects (another custom class).
@@ -40,6 +39,8 @@ public class SmsMessageListAdapter extends ArrayAdapter{
       public View getView (int position, View convertView, ViewGroup parent) {
     	  //Extract the message to display 
     	  SmsMessage msg = (SmsMessage) getItem(position);
+    	  
+    	  //TODO: Figure out how to use view recycling here.
     	  
     	  //Apply proper layout for sent vs. received messages
     	  if (!msg.getSent()){

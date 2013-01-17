@@ -15,6 +15,11 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+class ViewHolder{
+	TextView text;
+	ImageView icon;
+}
+
 
 /**
  * Custom adapter to convert list of SMS conversation into a listview.
@@ -39,21 +44,33 @@ public class SmsConversationListAdapter extends ArrayAdapter{
     	  //Extract the conversation to display 
     	  SmsConversation convo = (SmsConversation) getItem(position);
     	  
-    	  //Apply layout
-    	  convertView = inflater.inflate(R.layout.smsconversationlistview_item_row, null);
+    	  //Initialize viewholder
+		  ViewHolder holder;
+
+    	  //Apply layout (with view recycling)
+    	  if (convertView == null){
+    		  convertView = inflater.inflate(R.layout.smsconversationlistview_item_row, null);
+    		  holder = new ViewHolder();
+    		  
+    		  holder.text = (TextView) convertView.findViewById(R.id.lblSnippet);		  
+    		  holder.icon = (ImageView) convertView.findViewById(R.id.imgContactPhoto);
+    		  
+    		  convertView.setTag(holder);
+    	  } else {
+    		  holder = (ViewHolder) convertView.getTag();
+    	  }
 	  
-    	  //Take the TextView from layout and set the message
-    	  TextView lblSnippet = (TextView) convertView.findViewById(R.id.lblSnippet);
-    	  lblSnippet.setText(convo.getDisplayMsg());
+    	  //Set message to text view
+    	  holder.text.setText(convo.getDisplayMsg());
 	
-    	  //Take the ImageView from layout and set the contact image
-    	  ImageView imgContactPhoto = (ImageView) convertView.findViewById(R.id.imgContactPhoto);
+    	  //Set contact icon to image view
     	  long contactId = SmsMessageListAdapter.fetchContactId(convo.getContactNumber(), context);
     	  Uri uriContact = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_URI, String.valueOf(contactId));
     	  InputStream photo_stream = ContactsContract.Contacts.openContactPhotoInputStream(context.getContentResolver(),uriContact);            
     	  BufferedInputStream buf = new BufferedInputStream(photo_stream);
     	  Bitmap my_btmp = BitmapFactory.decodeStream(buf);
-    	  imgContactPhoto.setImageBitmap(my_btmp);
+    	  holder.icon.setImageBitmap(my_btmp);
+    	  
     	  return convertView;
       }
 }
