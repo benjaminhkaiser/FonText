@@ -21,16 +21,16 @@ import android.widget.TextView;
 /**
  * Custom adapter to convert list of SMS messages into a listview.
  * The SMS messages are stored as Sms objects (another custom class).
- * @author Ben
+ * @author Ben Kaiser
  */
 @SuppressWarnings("rawtypes")
-public class SmsListAdapter extends ArrayAdapter{
+public class SmsMessageListAdapter extends ArrayAdapter{
 
       private LayoutInflater inflater;
       private Context context;
 
       @SuppressWarnings("unchecked")
-      public SmsListAdapter(Context ctx, int resourceId, List objects) {
+      public SmsMessageListAdapter(Context ctx, int resourceId, List objects) {
     	  super(ctx, resourceId, objects);
           inflater = LayoutInflater.from( ctx );
           context=ctx;
@@ -39,7 +39,7 @@ public class SmsListAdapter extends ArrayAdapter{
       @Override
       public View getView (int position, View convertView, ViewGroup parent) {
     	  //Extract the message to display 
-    	  Sms msg = (Sms) getItem(position);
+    	  SmsMessage msg = (SmsMessage) getItem(position);
     	  
     	  //Apply proper layout for sent vs. received messages
     	  if (!msg.getSent()){
@@ -56,7 +56,7 @@ public class SmsListAdapter extends ArrayAdapter{
 	
     	  //Take the ImageView from layout and set the contact image
     	  ImageView imgContactPhoto = (ImageView) convertView.findViewById(R.id.imgContactPhoto);
-    	  long contactId = fetchContactId(msg.getSenderNum());
+    	  long contactId = fetchContactId(msg.getSenderNum(), context);
     	  Uri uriContact = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_URI, String.valueOf(contactId));
     	  InputStream photo_stream = ContactsContract.Contacts.openContactPhotoInputStream(context.getContentResolver(),uriContact);            
     	  BufferedInputStream buf = new BufferedInputStream(photo_stream);
@@ -71,10 +71,10 @@ public class SmsListAdapter extends ArrayAdapter{
        * @param phoneNumber	number to look up
        * @return			contactId of contact
        */
-      public long fetchContactId(String phoneNumber) {
+      public static long fetchContactId(String phoneNumber, Context contxt) {
     	  Uri uri = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI,
     	  Uri.encode(phoneNumber));
-    	  Cursor cursor = context.getContentResolver().query(uri,
+    	  Cursor cursor = contxt.getContentResolver().query(uri,
     	      new String[] { PhoneLookup.DISPLAY_NAME, PhoneLookup._ID },
     	      null, null, null);
 

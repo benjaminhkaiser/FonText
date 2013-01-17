@@ -1,7 +1,6 @@
 package com.example.fontext;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -94,8 +93,7 @@ public class SmsReceiver extends BroadcastReceiver{
 	 * For single msg, touching notification goes to the conversation thread.
 	 * For multi msgs, it goes to the inbox.
 	 * In 4.1+:
-	 * Single msg noti is expandable to show (non-functional) options.
-	 * TODO: implement expanded options (call + view contact)
+	 * Single msg noti is expandable to show call and view contact options.
 	 * Multi msg noti is expandable to inbox-style view to show each msg
 	 * @param context	application context
 	 * @param isJB		boolean to store if api level is 4.1+ or not
@@ -183,79 +181,7 @@ public class SmsReceiver extends BroadcastReceiver{
 		if (isJB) notificationManager.notify(1, noti.build());
 		else notificationManager.notify(1, noti.getNotification());
 	}
-	
 
-	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-	private void displayJBNotification(Context context){
-		//Query SMS inbox for unread messages
-		Uri uriInbox = Uri.parse("content://sms/inbox");
-        Cursor inboxCursor = context.getContentResolver().query(uriInbox, null, "read = 0", null, null);
-		
-		if (inboxCursor.getCount() == 1){		//if there is only one unread SMS
-			inboxCursor.moveToNext();
-			
-			//Get info from SMS
-			String address = inboxCursor.getString(inboxCursor.getColumnIndex(ADDRESS));
-		    String body = inboxCursor.getString(inboxCursor.getColumnIndex(BODY));
-		    
-		    //Get contact name
-		    String name = getContactbyNumber(address, context, true);
-		    
-			//Create intent to be executed upon notification touch
-			Intent intent = new Intent(context, Conversation.class);
-			intent.putExtra("sender", name);
-			intent.putExtra("thread_id", inboxCursor.getString(inboxCursor.getColumnIndex("thread_id")));
-			PendingIntent pIntent = PendingIntent.getActivity(context, 1, intent, 0);
-		    
-			//Create notification
-			Notification.Builder noti = new Notification.Builder(context)
-	        	.setContentTitle(name)
-	        	.setContentText(Html.fromHtml(Compose.decodeMessage(body)))
-	        	.setSmallIcon(R.drawable.ic_launcher)
-	        	.setContentIntent(pIntent)
-	        	//.addAction(R.drawable.ic_launcher, "Call", pIntent)
-	        	//.addAction(R.drawable.ic_launcher, "View Contact", pIntent)
-	        	.setAutoCancel(true);
-			
-			//Instantiate notification manager
-			NotificationManager notificationManager = 
-					  (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-
-			//Post notification to status bar
-			notificationManager.notify(1, noti.build());
-		} else {					//if there are multiple unread SMS messages
-			//Create intent
-			Intent intent = new Intent(context, Inbox.class);
-			PendingIntent pIntent = PendingIntent.getActivity(context, 1, intent, 0);
-			
-			//Create notification
-			Notification.Builder noti = new Notification.Builder(context)
-	        	.setContentTitle("New SMS messages")
-	        	.setContentText("You've received new SMS messages.")
-	        	.setContentInfo(String.valueOf(inboxCursor.getCount()))
-	        	.setSmallIcon(R.drawable.ic_launcher)
-	        	.setContentIntent(pIntent)
-	        	.setAutoCancel(true);
-			
-			Notification.InboxStyle inboxStyle = new Notification.InboxStyle();
-			inboxStyle.setBigContentTitle("New SMS messages");
-				
-			while(inboxCursor.moveToNext()){
-			    String body = inboxCursor.getString(inboxCursor.getColumnIndex(BODY));
-			    String name = getContactbyNumber(inboxCursor.getString(inboxCursor.getColumnIndex(ADDRESS)), context, true);
-				inboxStyle.addLine(name + ": " + Html.fromHtml(Compose.decodeMessage(body)));
-			}
-			
-			noti.setStyle(inboxStyle);
-			
-			//Instantiate notification manager
-			NotificationManager notificationManager = 
-					  (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-
-			//Post notification to status bar
-			notificationManager.notify(1, noti.build());
-		}
-	}
 	
 	/**
 	 * Helper fn: given phone number, return matching contact name if it exists

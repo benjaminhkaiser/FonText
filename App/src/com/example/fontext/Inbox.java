@@ -8,12 +8,9 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Html;
-import android.text.Spanned;
-import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 public class Inbox extends Activity {
@@ -32,12 +29,35 @@ public class Inbox extends Activity {
 	    super.onResume();
 	}
 
-	@Override
+	/*@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.activity_inbox, menu);
+		getMenuInflater().inflate(R.menu.activity_conversation, menu);
 		return true;
 	}
+	
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+	    super.onCreateContextMenu(menu, v, menuInfo);
+	    if (v.getId() == R.id.lstConvoThread){
+	    	AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+	        String selectedWord = ((TextView) info.targetView).getText().toString();
+	        long selectedWordId = info.id;
+	    	menu.setHeaderTitle("Thread options");
+	    	menu.add(Menu.NONE, 0, 0, "View contact");
+	    	menu.add(Menu.NONE, 1, 1, "Delete thread");
+	    }
+	}
+	
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+	  if (item.getItemId() == 0){
+		  //view contact
+	  } else {
+		  //delete thread
+	  }
+	  return true;
+	}*/
 	
 	/**
 	 * Helper fn: launches compose activity
@@ -48,8 +68,8 @@ public class Inbox extends Activity {
 		startActivity(intent);
 	}
 
-	//Global arraylist containing all SMSs.
-    ArrayList<Spanned> conversationList = new ArrayList<Spanned>();
+	//Global arraylist containing all SMS conversations.
+    ArrayList<SmsConversation> lstConversation = new ArrayList<SmsConversation>();
     
     /**
      * Refreshes listview with all SMS's in database. Called upon create and resume.
@@ -61,7 +81,7 @@ public class Inbox extends Activity {
 		Cursor conversationCursor = contentResolver.query(Uri.parse("content://sms/conversations"), null, null, null, "date desc");
 		
 		//Clear list of existing messages
-		conversationList.clear();
+		lstConversation.clear();
 		
 		//If there are no conversations, return.
 		if (!conversationCursor.moveToFirst()) return;
@@ -69,7 +89,8 @@ public class Inbox extends Activity {
 		//For every converation in the database, ...
 		do{
 			//get thread id, then get inbox messages related to that id 
-			String where = "thread_id=" + conversationCursor.getString(conversationCursor.getColumnIndex("thread_id"));
+			String thread_id = conversationCursor.getString(conversationCursor.getColumnIndex("thread_id"));
+			String where = "thread_id=" + thread_id;
 		    Cursor msgCursor = getContentResolver().query(Uri.parse("content://sms/inbox"), null, where, null, "date desc"); 
 		    String address = "";
 		    
@@ -91,13 +112,13 @@ public class Inbox extends Activity {
 		    	
 		    }
 		    
-		    //get address of conversation partner
 		    if (msgCursor.moveToFirst()){
+		    	//get conversation info to prepare for creating SmsConversation object
 		    	address = msgCursor.getString(msgCursor.getColumnIndexOrThrow("address")).toString();
-
-		    	//get message and sender and convert shortcode in body to HTML tags
 		    	String body = Compose.decodeMessage(msgCursor.getString(msgCursor.getColumnIndex("body")));
 				String sender = SmsReceiver.getContactbyNumber(address, this, true);
+				String contactId = SmsReceiver.getContactbyNumber(address, this, false);
+				long msgTime = msgCursor.getLong(msgCursor.getColumnIndex("date"));
 				String message = sender + ": " + body;
 				
 				//If message is unread, highlight in red
@@ -105,7 +126,9 @@ public class Inbox extends Activity {
 					message = "<font color=\"red\">" + message + "<\font>";
 				}
 				
-				conversationList.add(Html.fromHtml(message));
+				//Create SmsConversation object and add to list
+				SmsConversation convo = new SmsConversation(thread_id, sender, contactId, address, Html.fromHtml(message), msgTime);
+				lstConversation.add(convo);
 		    }
 		
 			
@@ -113,11 +136,11 @@ public class Inbox extends Activity {
 		while(conversationCursor.moveToNext());
 
 		//Get the listView and create an Adapter to convert each string into a list item
-		ListView smsListView = (ListView) findViewById(R.id.lstInbox);
-		smsListView.setAdapter(new ArrayAdapter<Spanned>(this, android.R.layout.simple_list_item_1, conversationList));
+		ListView inboxListView = (ListView) findViewById(R.id.lstInbox);
+		inboxListView.setAdapter(new SmsConversationListAdapter(this, R.layout.smsconversationlistview_item_row, lstConversation));
 		
 		//Create the listener for list item clicks
-		smsListView.setOnItemClickListener(new OnItemClickListener(){
+		inboxListView.setOnItemClickListener(new OnItemClickListener(){
 			//On clicks, go to conversation view
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int pos, long id){

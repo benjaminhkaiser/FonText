@@ -90,7 +90,7 @@ public class Conversation extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_conversation);
 		
-		//register long click listeners
+		//register long click listeners to formatting buttons
 		Button btnBold = (Button)findViewById(R.id.btnReplyBold);
 	    btnBold.setOnLongClickListener(lngclkBold);
 	    Button btnItalics = (Button)findViewById(R.id.btnReplyItalics);
@@ -113,7 +113,7 @@ public class Conversation extends Activity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.activity_conversation, menu);
+		getMenuInflater().inflate(R.menu.activity_inbox, menu);
 		return true;
 	}
 	
@@ -148,8 +148,10 @@ public class Conversation extends Activity {
 	    	inboxCursor.moveToFirst();
 	    }
 	    
+	    //TODO: clear notifications for active conversation
+	    
 	    //Initialize list to hold messages in chronological order
-	    ArrayList<Sms> arylstSmsMessages = new ArrayList<Sms>();
+	    ArrayList<SmsMessage> arylstSmsMessages = new ArrayList<SmsMessage>();
 	    
 	    //For every message in both cursor sets
 	    for (int i = 0; i < (inboxCursor.getCount() + sentCursor.getCount()); i++){    	
@@ -167,7 +169,8 @@ public class Conversation extends Activity {
 	    			//Get body and sender address, then create Sms object and add to list
 	    			String body = Compose.decodeMessage(inboxCursor.getString(inboxCursor.getColumnIndex("body")));
 	    			String senderNum = inboxCursor.getString(inboxCursor.getColumnIndex("address"));
-	    			Sms msg = new Sms(Html.fromHtml(body), senderNum, recmsgTime, false);
+	    			int msgId = inboxCursor.getInt(0);
+	    			SmsMessage msg = new SmsMessage(Html.fromHtml(body), senderNum, recmsgTime, false, msgId);
 	    			arylstSmsMessages.add(0, msg);
 	    			inboxCursor.moveToNext();
 	    		} catch (Exception e) {continue;}
@@ -177,7 +180,8 @@ public class Conversation extends Activity {
 	    			String body = Compose.decodeMessage(sentCursor.getString(sentCursor.getColumnIndex("body")));
 	    			TelephonyManager tMgr = (TelephonyManager) getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
 	    			String senderNum = tMgr.getLine1Number();
-	    			Sms msg = new Sms(Html.fromHtml(body), senderNum, sentmsgTime, true);
+	    			int msgId = inboxCursor.getInt(0);
+	    			SmsMessage msg = new SmsMessage(Html.fromHtml(body), senderNum, sentmsgTime, true, msgId);
 	    			arylstSmsMessages.add(0, msg);
 	    			sentCursor.moveToNext();
 	    		} catch (Exception e) {continue;}
@@ -186,7 +190,7 @@ public class Conversation extends Activity {
 	    
 	    //Set up the adapter for the list.
 	    ListView conversationListView = (ListView) findViewById(R.id.lstConvoThread);
-		conversationListView.setAdapter(new SmsListAdapter(this, 0, arylstSmsMessages));
+		conversationListView.setAdapter(new SmsMessageListAdapter(this, 0, arylstSmsMessages));
 		/* resourceId is being passed as 0 because it is determined on a line-by-line basis
 		 * by the adapter. It has to be able to apply difference layout resources to sent
 		 * messages versus received messages.
