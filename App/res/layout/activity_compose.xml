@@ -5,13 +5,28 @@
     android:orientation="vertical"
     tools:context=".Compose" >
 
-    <EditText
-        android:id="@+id/txtPhone"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ems="10"
-        android:hint="@string/hint_phone"
-        android:inputType="phone" />
+        android:orientation="horizontal" >
+
+	    <EditText
+	        android:id="@+id/txtPhone"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:ems="10"
+	        android:hint="@string/hint_phone"
+	        android:inputType="phone" />
+
+	    <Button
+	        android:id="@+id/btnContact"
+	        style="?android:attr/buttonStyleSmall"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:onClick="chooseContact"
+	        android:text="Contacts" />
+             
+	</LinearLayout>
 
     <EditText
         android:id="@+id/txtMessage"

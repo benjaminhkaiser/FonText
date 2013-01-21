@@ -1,15 +1,21 @@
 package com.example.fontext;
 
+import java.util.ArrayList;
+
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.provider.ContactsContract.Contacts;
 import android.telephony.SmsManager;
 import android.text.Html;
 import android.view.Menu;
@@ -20,6 +26,8 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 public class Compose extends Activity {
+	
+	private static final int CONTACT_PICKER_RESULT = 1001;
 	
 	//Long click listener for bold button
 	private OnLongClickListener lngclkBold = new OnLongClickListener() {
@@ -315,4 +323,103 @@ public class Compose extends Activity {
 		txtMsg.setSelection(selStart, selEnd);	
 	}
 	
+	/**
+	 * Starts contact picker activity
+	 * @param view	view of compose screen
+	 */
+	public void chooseContact(View view){
+		Intent contactPickerIntent = new Intent(Intent.ACTION_PICK,  
+	            Contacts.CONTENT_URI);  
+	    startActivityForResult(contactPickerIntent, CONTACT_PICKER_RESULT);  
+	}
+	
+	@Override  
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {  
+        if (resultCode == RESULT_OK) {  
+            switch (requestCode) {  
+	            case CONTACT_PICKER_RESULT:	//choose contact for compose screen
+	            	//initialize cursor for contact database
+	                Cursor cursor = null;  
+	                ArrayList<String> arylstNumbers = new ArrayList<String>(); 
+	                try {  
+	                	//get contact id (last 2 chars of Uri)
+	                    Uri result = data.getData();
+	                    String id = result.getLastPathSegment();
+	                    cursor = getContentResolver().query(Phone.CONTENT_URI,  
+	                            null, Phone.CONTACT_ID + "=?", new String[] { id }, null);  
+	                    
+	                    //add all numbers to list (storing number type as well)
+	                    int phoneIdx = cursor.getColumnIndex(Phone.DATA);
+	                    int phoneTypeIdx = cursor.getColumnIndex(Phone.DATA2);
+	                    String phoneType = "";
+	                    if (cursor.moveToFirst()) {  
+	                        while (!cursor.isAfterLast()){
+	                        	switch (cursor.getInt(phoneTypeIdx)){
+	                        	case 0:
+	                        		phoneType = cursor.getString(cursor.getColumnIndex(Phone.LABEL));
+	                        		break;
+	                        	case 1:
+                        			phoneType = "Home: ";
+                        			break;
+	                        	case 2:
+	                        		phoneType = "Work: ";
+                        			break;
+	                        	case 3:
+	                        		phoneType = "Other: ";
+	                        		break;
+	                        	case 4:
+	                        		phoneType = "Mobile: ";
+	                        		break;
+	                        	}
+	                            arylstNumbers.add(phoneType + cursor.getString(phoneIdx));
+	                            cursor.moveToNext();
+	                        }   
+	                    }  
+	                } catch (Exception e) {
+	                } finally {  
+	                    if (cursor != null) {  
+	                        cursor.close();  
+	                    } 
+	                    //get edittext from view
+	                    final EditText txtPhone = (EditText) findViewById(R.id.txtPhone);
+	
+	                    //convert array list to array
+	                    final String [] items = arylstNumbers.toArray(new String[arylstNumbers.size() ]);
+	                    
+	                    //Start building alert dialog to choose between multiple numbers
+                        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                        builder.setTitle("Choose a number: ");
+                        builder.setItems(items, new DialogInterface.OnClickListener() {
+                    		//on click, get selected item, strip label and excess chars, and set to edittext
+                            public void onClick(DialogInterface dialog, int item) {
+                                String selectedNumber = items[item].toString();
+                              
+                              	selectedNumber = selectedNumber.replaceAll("^[^:]*:", "");
+                                
+                                selectedNumber = selectedNumber.replace("-","").replace("+","");
+                                selectedNumber = selectedNumber.replace("(","").replace(")","");
+                                selectedNumber = selectedNumber.replace(" ", "");
+                                
+                                txtPhone.setText(selectedNumber);
+                            }
+                        });
+                        AlertDialog alert = builder.create();
+                        if(arylstNumbers.size()>1){
+                        	//if there are multiple numbers in the list, show the alert
+                            alert.show();
+                        }else if (arylstNumbers.size() == 1){
+                        	//if there is only one number in the list, strip label and excess chars and set to edittext
+                            String selectedNumber = arylstNumbers.get(0);
+                            selectedNumber = selectedNumber.replaceAll("^[^:]*:", "");
+                            selectedNumber = selectedNumber.replace("-","").replace("+","");
+                            selectedNumber = selectedNumber.replace("(","").replace(")","");
+                            selectedNumber = selectedNumber.replace(" ", "");
+                            txtPhone.setText(selectedNumber);
+                        }
+	                }  
+	                break;	//end case CONTACT_PICKER_RESULT  
+            }        
+        }
+    }
+
 } //close Compose class
