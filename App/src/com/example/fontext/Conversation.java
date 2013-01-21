@@ -9,6 +9,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ import android.telephony.TelephonyManager;
 import android.text.Html;
 import android.view.Menu;
 import android.view.View;
+import android.view.View.OnFocusChangeListener;
 import android.view.View.OnLongClickListener;
 import android.widget.Button;
 import android.widget.EditText;
@@ -84,7 +86,7 @@ public class Conversation extends Activity {
 	    	return true;
 		}
 	};
-
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -189,11 +191,12 @@ public class Conversation extends Activity {
 	    }
 	    
 	    //Set up the adapter for the list.
-	    ListView conversationListView = (ListView) findViewById(R.id.lstConvoThread);
+	    CustomListView conversationListView = (CustomListView) findViewById(R.id.lstConvoThread);
 		conversationListView.setAdapter(new SmsMessageListAdapter(this, 0, arylstSmsMessages));
 		/* resourceId is being passed as 0 because it is determined on a line-by-line basis
 		 * by the adapter. It has to be able to apply difference layout resources to sent
-		 * messages versus received messages.
+		 * messages versus received messages. TODO: fix this. I think it's why refreshing
+		 * takes so goddamn long.
 		 */
 		
 		//Scroll to the bottom of the list
