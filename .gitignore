@@ -21,3 +21,6 @@ local.properties
 
 # Style checker files
 .checkstyle
+
+#Action Bar Sherlock files
+ABS/
