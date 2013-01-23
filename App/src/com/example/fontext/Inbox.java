@@ -3,6 +3,8 @@ package com.example.fontext;
 import java.util.ArrayList;
 
 import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 
 import android.content.ContentResolver;
 import android.content.Intent;
@@ -30,14 +32,27 @@ public class Inbox extends SherlockActivity {
 	    refreshMsgs(this.getCurrentFocus());
 	    super.onResume();
 	}
-
-	/*@Override
+	
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.activity_conversation, menu);
-		return true;
+	   com.actionbarsherlock.view.MenuInflater inflater = getSupportMenuInflater();
+	   inflater.inflate(R.menu.activity_inbox, (com.actionbarsherlock.view.Menu) menu);
+	   return super.onCreateOptionsMenu(menu);
 	}
 	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+	    // Handle item selection
+	    switch (item.getItemId()) {
+	        case R.id.menu_compose:
+	            launchCompose();
+	            return true;
+	        default:
+	            return super.onOptionsItemSelected(item);
+	    }
+	}
+	
+	/*
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
 	    super.onCreateContextMenu(menu, v, menuInfo);
@@ -64,9 +79,8 @@ public class Inbox extends SherlockActivity {
 	
 	/**
 	 * Helper fn: launches compose activity
-	 * @param view	view of the Inbox activity
 	 */
-	public void launchCompose(View view){
+	public void launchCompose(){
 		Intent intent = new Intent(this, Compose.class);
 		startActivity(intent);
 	}

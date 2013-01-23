@@ -24,3 +24,6 @@ local.properties
 
 #Action Bar Sherlock files
 ABS/
+
+#Action bar icons
+ActionBarIcons/
