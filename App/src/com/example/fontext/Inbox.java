@@ -6,12 +6,19 @@ import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 
+import android.app.AlertDialog;
+import android.app.PendingIntent;
+import android.app.PendingIntent.CanceledException;
 import android.content.ContentResolver;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.text.Html;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -52,29 +59,59 @@ public class Inbox extends SherlockActivity {
 	    }
 	}
 	
-	/*
+	
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
 	    super.onCreateContextMenu(menu, v, menuInfo);
-	    if (v.getId() == R.id.lstConvoThread){
+	    if (v.getId() == R.id.lstInbox){
 	    	AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-	        String selectedWord = ((TextView) info.targetView).getText().toString();
-	        long selectedWordId = info.id;
-	    	menu.setHeaderTitle("Thread options");
+	        String contactName = lstConversation.get(info.position).getContactName();	
+	    	menu.setHeaderTitle(contactName);
 	    	menu.add(Menu.NONE, 0, 0, "View contact");
 	    	menu.add(Menu.NONE, 1, 1, "Delete thread");
 	    }
 	}
 	
 	@Override
-	public boolean onContextItemSelected(MenuItem item) {
-	  if (item.getItemId() == 0){
-		  //view contact
-	  } else {
-		  //delete thread
-	  }
-	  return true;
-	}*/
+	public boolean onContextItemSelected(android.view.MenuItem item) {
+		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        final SmsConversation selectedConvo = lstConversation.get(info.position);	        
+
+        if (item.getItemId() == 0){
+        	//view contact if it exists
+        	Intent viewcontactIntent = new Intent();
+        	String contactId = selectedConvo.getContactId();
+        	if (contactId != ""){
+        		Uri uriContact = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_URI, contactId);
+        		viewcontactIntent.setData(uriContact);
+        		PendingIntent pViewIntent = PendingIntent.getActivity(getBaseContext(), 1, viewcontactIntent, 0);
+        		try {
+        			pViewIntent.send();
+        		} catch (CanceledException e) {
+        			e.printStackTrace();
+        		}
+        	}
+        } else {
+    		//show delete confirmation alert
+        	new AlertDialog.Builder(this)
+            .setIcon(android.R.drawable.ic_dialog_alert)
+            .setTitle("Delete thread?")
+            .setMessage("Really delete?")
+            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    //Delete thread
+                	String thread_id = selectedConvo.getThreadId();
+                	deleteThread(thread_id);
+                }
+
+            })
+            .setNegativeButton("No", null)
+            .show();
+        }
+        return true;
+	}
 	
 	
 	/**
@@ -96,14 +133,14 @@ public class Inbox extends SherlockActivity {
 		//Instantiate a contentResolver to access SMS conversations
 		ContentResolver contentResolver = getContentResolver();
 		Cursor conversationCursor = contentResolver.query(Uri.parse("content://sms/conversations"), null, null, null, "date desc");
-		
+ 
 		//Clear list of existing messages
 		lstConversation.clear();
 		
 		//If there are no conversations, return.
 		if (!conversationCursor.moveToFirst()) return;
 			
-		//For every converation in the database, ...
+		//For every conversation in the database, ...
 		do{
 			//get thread id, then get inbox messages related to that id 
 			String thread_id = conversationCursor.getString(conversationCursor.getColumnIndex("thread_id"));
@@ -155,6 +192,7 @@ public class Inbox extends SherlockActivity {
 		//Get the listView and create an Adapter to convert each string into a list item
 		ListView inboxListView = (ListView) findViewById(R.id.lstInbox);
 		inboxListView.setAdapter(new SmsConversationListAdapter(this, R.layout.smsconversationlistview_item_row, lstConversation));
+		registerForContextMenu(inboxListView);
 		
 		//Create the listener for list item clicks
 		inboxListView.setOnItemClickListener(new OnItemClickListener(){
@@ -192,6 +230,16 @@ public class Inbox extends SherlockActivity {
                 finish();
         	}	//close onItemClick()
         });	//close OnItemClickListener, then close setOnItemClickListener() and end line
+	}
+	
+	/**
+	 * Helper fn: deletes thread from sms database, refreshes inbox
+	 * @param thread_id	thread_id of thread to delete
+	 */
+	public void deleteThread(String thread_id){
+		Uri thread = Uri.parse("content://sms");
+	    getContentResolver().delete(thread, "thread_id=?", new String[] {thread_id});
+	    refreshMsgs(this.getCurrentFocus());
 	}
 	
 }
