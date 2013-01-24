@@ -2,6 +2,10 @@ package com.example.fontext;
 
 import java.util.ArrayList;
 
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -9,24 +13,21 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
 import android.text.Html;
-import android.view.Menu;
 import android.view.View;
-import android.view.View.OnFocusChangeListener;
 import android.view.View.OnLongClickListener;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class Conversation extends Activity {
+
+public class Conversation extends SherlockActivity {
 
 	public String thread_id;
 
@@ -109,14 +110,31 @@ public class Conversation extends Activity {
 		TextView lblPerson = (TextView) findViewById(R.id.lblPerson);
 		lblPerson.setText(sender);
 		
+		//Set up button to action bar
+		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+		
 		refreshConversationThread(sender, thread_id);
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.activity_inbox, menu);
-		return true;
+		//inflate action bar
+		com.actionbarsherlock.view.MenuInflater inflater = getSupportMenuInflater();
+		inflater.inflate(R.menu.activity_conversation, (com.actionbarsherlock.view.Menu) menu);
+		return super.onCreateOptionsMenu(menu);
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+	    // Handle item selection
+	    switch (item.getItemId()) {
+	        case android.R.id.home:
+	        	Intent intent = new Intent(this, Inbox.class);
+	    		startActivity(intent);
+	            return true;
+	        default:
+	            return super.onOptionsItemSelected(item);
+	    }
 	}
 	
 	//TODO: This is a bad fix - it's just for usability while developing. Figure out how this is actually supposed to work.

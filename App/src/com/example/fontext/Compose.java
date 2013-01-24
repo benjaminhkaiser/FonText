@@ -2,6 +2,10 @@ package com.example.fontext;
 
 import java.util.ArrayList;
 
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
@@ -18,14 +22,13 @@ import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.Contacts;
 import android.telephony.SmsManager;
 import android.text.Html;
-import android.view.Menu;
 import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-public class Compose extends Activity {
+public class Compose extends SherlockActivity {
 	
 	private static final int CONTACT_PICKER_RESULT = 1001;
 	
@@ -98,6 +101,9 @@ public class Compose extends Activity {
 	    btnItalics.setOnLongClickListener(lngclkItalics);
 	    Button btnUnderline = (Button)findViewById(R.id.btnCompUnderline);
 	    btnUnderline.setOnLongClickListener(lngclkUnderline);
+	    
+	    //Set up button to action bar
+	  	getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 	}
 
 	@Override
@@ -107,12 +113,32 @@ public class Compose extends Activity {
 	    // Stop method tracing that the activity started during onCreate()
 	    android.os.Debug.stopMethodTracing();
 	}
-		
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.activity_compose, menu);
-		return true;
+		//inflate action bar
+		com.actionbarsherlock.view.MenuInflater inflater = getSupportMenuInflater();
+		inflater.inflate(R.menu.activity_compose, (com.actionbarsherlock.view.Menu) menu);
+		return super.onCreateOptionsMenu(menu);
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+	    // Handle item selection
+	    switch (item.getItemId()) {
+	        case android.R.id.home:
+	        	finish();
+	            return true;
+	        case R.id.menu_send:
+	        	sendMessage();
+	        default:
+	            return super.onOptionsItemSelected(item);
+	    }
+	}
+	
+	public void onBackPressed(){
+		Intent intent = new Intent(this, Inbox.class);
+		startActivity(intent);
 	}
 	
 	/**
@@ -215,10 +241,9 @@ public class Compose extends Activity {
 	 * Gets message and phone nunmber from view, creates a receiver
 	 * to confirm send, then sends SMS. If SMS succeeds, clears
 	 * text fields in view.
-	 * @param  view view from compose activity. contains num and msg.
 	 * @return      void
 	 */
-	public void sendMessage(View view){
+	public void sendMessage(){
 		//TODO: allow contact name to be entered into address field
 		String SENT = "SMS_SENT";
         
