@@ -134,7 +134,6 @@ public class Conversation_activity extends SherlockActivity {
 				switch (getResultCode()) {
                 case Activity.RESULT_OK:
                 	//Add SMS to database
-                	//TODO: if user goes to inbox after pressing send but before send, the inbox doesn't show the msg
                 	ContentValues values = new ContentValues();
         		    values.put("address", intent.getStringExtra("dest"));
         		    values.put("body", Compose_activity.encodeMessage(intent.getStringExtra("msg")));
@@ -186,19 +185,30 @@ public class Conversation_activity extends SherlockActivity {
 	    // Handle item selection
 	    switch (item.getItemId()) {
 	        case android.R.id.home:
-	        	Intent intent = new Intent(this, Inbox_activity.class);
-	    		startActivity(intent);
-	            return true;
+	        	if (!msgSending) {
+	        		Intent intent = new Intent(this, Inbox_activity.class);
+	        		startActivity(intent);
+	        		return true;
+	        	} else {
+	        		//TODO: THIS IS A TERRIBLE FIX. DO SOMETHING BETTER.
+	            	Toast.makeText(getBaseContext(), "Please wait for your message to send.", Toast.LENGTH_SHORT).show();
+	            	return false;
+	        	}
 	        default:
 	            return super.onOptionsItemSelected(item);
 	    }
 	}
 	
-	//TODO: This is a bad fix - it's just for usability while developing. Figure out how this is actually supposed to work.
+	//TODO: This is bad - it's just for usability while developing. Figure out how this is actually supposed to work.
 	@Override
 	public void onBackPressed(){
-		Intent intent = new Intent(this, Inbox_activity.class);
-		startActivity(intent);
+		if (!msgSending) {
+			Intent intent = new Intent(this, Inbox_activity.class);
+			startActivity(intent);
+		} else {
+			//TODO: THIS IS A TERRIBLE FIX. DO SOMETHING BETTER.
+        	Toast.makeText(getBaseContext(), "Please wait for your message to send.", Toast.LENGTH_SHORT).show();
+		}
 	}
 	
 	/**
