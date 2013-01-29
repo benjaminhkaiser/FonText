@@ -311,7 +311,7 @@ public class Compose_activity extends SherlockActivity {
 		//initialize smsmanager, send SMS, and add to database
 		SmsManager smsMgr = SmsManager.getDefault();
 		try{
-            Toast.makeText(getBaseContext(), "Sending message", Toast.LENGTH_SHORT).show();
+			Toast.makeText(getBaseContext(), "Sending message", Toast.LENGTH_SHORT).show();
 			smsMgr.sendTextMessage(destination,null,encodeMessage(msg),piSent,null);
 		} catch (IllegalArgumentException e){
 			Toast.makeText(getBaseContext(), "Please enter a number and message", Toast.LENGTH_SHORT).show();

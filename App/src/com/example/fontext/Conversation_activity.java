@@ -31,6 +31,7 @@ public class Conversation_activity extends SherlockActivity {
 
 	public String thread_id;
 	private BroadcastReceiver messageSentReceiver;
+	public boolean msgSending = false;	//flag: is a message is currently being sent
 
 	//Long click listener for bold button
 	private OnLongClickListener lngclkBold = new OnLongClickListener() {
@@ -128,21 +129,22 @@ public class Conversation_activity extends SherlockActivity {
 
 			@Override
 			public void onReceive(Context context, Intent intent) {
+    		    msgSending = false; //immediately change flag
+
 				switch (getResultCode()) {
                 case Activity.RESULT_OK:
                 	//Add SMS to database
-                	//TODO: If user leaves view before msg sends, this never triggers
+                	//TODO: if user goes to inbox after pressing send but before send, the inbox doesn't show the msg
                 	ContentValues values = new ContentValues();
         		    values.put("address", intent.getStringExtra("dest"));
         		    values.put("body", Compose_activity.encodeMessage(intent.getStringExtra("msg")));
         		    values.put("thread_id", thread_id);
         		    getContentResolver().insert(Uri.parse("content://sms/sent"), values); 
-        		    
                 	//refresh conversation thread
                 	refreshConversationThread();
                 case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
                 	//TODO: this is firing even on successful sends - figure out why
-                    //Toast.makeText(getBaseContext(), "Text failed", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getBaseContext(), "Text failed", Toast.LENGTH_SHORT).show();
                     break;
                 case SmsManager.RESULT_ERROR_NO_SERVICE:
                     Toast.makeText(getBaseContext(), "No service", Toast.LENGTH_SHORT).show();
@@ -166,8 +168,8 @@ public class Conversation_activity extends SherlockActivity {
 	protected void onPause(){
 		super.onPause();
 		
-		//Unregister receiver
-		if (this.messageSentReceiver != null)
+		//Unregister receiver if it has been created and a message isn't currently being sent
+		if (this.messageSentReceiver != null && !msgSending)
 			unregisterReceiver(messageSentReceiver);
 	}
 
@@ -343,6 +345,7 @@ public class Conversation_activity extends SherlockActivity {
 		//initialize smsmanager, send SMS, and add to database
 		SmsManager smsMgr = SmsManager.getDefault();
 		try{
+			msgSending = true;	//set flag
 			smsMgr.sendTextMessage(destination,null,Compose_activity.encodeMessage(msg),piSent,null);
         	Toast.makeText(getBaseContext(), "Sending message", Toast.LENGTH_SHORT).show();
 		} catch (IllegalArgumentException e){
