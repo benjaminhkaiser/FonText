@@ -244,7 +244,6 @@ public class Compose_activity extends SherlockActivity {
 	 * @return      void
 	 */
 	public void sendMessage(){
-		//TODO: allow contact name to be entered into address field
 		String SENT = "SMS_SENT";
         
 		//get text fields from view, then strings from text fields

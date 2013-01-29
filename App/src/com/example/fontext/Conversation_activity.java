@@ -30,6 +30,7 @@ import android.widget.Toast;
 public class Conversation_activity extends SherlockActivity {
 
 	public String thread_id;
+	private BroadcastReceiver messageSentReceiver;
 
 	//Long click listener for bold button
 	private OnLongClickListener lngclkBold = new OnLongClickListener() {
@@ -113,7 +114,61 @@ public class Conversation_activity extends SherlockActivity {
 		//Set up button to action bar
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		
-		refreshConversationThread(sender);
+		refreshConversationThread();
+	}
+	
+	@Override
+	protected void onResume(){
+		super.onResume();
+		
+		String SENT = "SMS_SENT";
+
+		//Create receiver for send confirmation
+		messageSentReceiver = new BroadcastReceiver(){
+
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				switch (getResultCode()) {
+                case Activity.RESULT_OK:
+                	//Add SMS to database
+                	//TODO: If user leaves view before msg sends, this never triggers
+                	ContentValues values = new ContentValues();
+        		    values.put("address", intent.getStringExtra("dest"));
+        		    values.put("body", Compose_activity.encodeMessage(intent.getStringExtra("msg")));
+        		    values.put("thread_id", thread_id);
+        		    getContentResolver().insert(Uri.parse("content://sms/sent"), values); 
+        		    
+                	//refresh conversation thread
+                	refreshConversationThread();
+                case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
+                	//TODO: this is firing even on successful sends - figure out why
+                    //Toast.makeText(getBaseContext(), "Text failed", Toast.LENGTH_SHORT).show();
+                    break;
+                case SmsManager.RESULT_ERROR_NO_SERVICE:
+                    Toast.makeText(getBaseContext(), "No service", Toast.LENGTH_SHORT).show();
+                    break;
+                case SmsManager.RESULT_ERROR_NULL_PDU:
+                    Toast.makeText(getBaseContext(), "Null PDU", Toast.LENGTH_SHORT).show();
+                    break;
+                case SmsManager.RESULT_ERROR_RADIO_OFF:
+                    Toast.makeText(getBaseContext(), "Radio off", Toast.LENGTH_SHORT).show();
+                    break;    
+				}
+			}
+			
+		};
+		
+		IntentFilter messageSentIntentFilter = new IntentFilter(SENT);
+		registerReceiver(messageSentReceiver, messageSentIntentFilter);
+	}
+	
+	@Override
+	protected void onPause(){
+		super.onPause();
+		
+		//Unregister receiver
+		if (this.messageSentReceiver != null)
+			unregisterReceiver(messageSentReceiver);
 	}
 
 	@Override
@@ -146,10 +201,9 @@ public class Conversation_activity extends SherlockActivity {
 	
 	/**
 	 * Create and display conversation thread of contact
-	 * @param sender	name of contact
 	 * @param thread_id	thread_id of conversation thread
 	 */
-	public void refreshConversationThread(String sender){
+	public void refreshConversationThread(){
 		//Get cursors for sent and received messages
 		String where = "thread_id=" + thread_id;
 	    Cursor inboxCursor = getContentResolver().query(Uri.parse("content://sms/inbox"), null, where, null, "date desc");
@@ -268,7 +322,7 @@ public class Conversation_activity extends SherlockActivity {
 		String where = "thread_id=" + thread_id;
 	    Cursor inboxCursor = getContentResolver().query(Uri.parse("content://sms/inbox"), null, where, null, null);
 	    inboxCursor.moveToFirst();
-	    final String destination = inboxCursor.getString(inboxCursor.getColumnIndexOrThrow("address")).toString();
+	    String destination = inboxCursor.getString(inboxCursor.getColumnIndexOrThrow("address")).toString();
         
 		//get message to send
 		EditText txtReply = (EditText) findViewById(R.id.txtReply);
@@ -277,50 +331,19 @@ public class Conversation_activity extends SherlockActivity {
 		//remove excess HTML tags from message
 		msg = msg.replace("<p dir=ltr>", "").replace("</p>", "");
 		msg = msg.replace("\n","");
-		
-		final String messageContent = msg;
-		
+				
 		//clear text fields
 		txtReply.setText("");
 		
 		//initialize pendingintent for send confirmation
-		PendingIntent piSent = PendingIntent.getBroadcast(this, 0, new Intent(SENT), 0);
-		
-		//set up intent receiver for sending
-		registerReceiver(new BroadcastReceiver(){
-			//override the onReceive function to display a toast containing error message
-            @Override
-            public void onReceive(Context arg0, Intent arg1) {	//args are unused
-                switch (getResultCode()) {
-                    case Activity.RESULT_OK:
-                    	ContentValues values = new ContentValues();
-            		    values.put("address", destination);
-            		    values.put("body", Compose_activity.encodeMessage(messageContent));
-            		    values.put("thread_id", thread_id);
-            		    getContentResolver().insert(Uri.parse("content://sms/sent"), values); 
-                    	Toast.makeText(getBaseContext(), "Message sent", Toast.LENGTH_SHORT).show();
-                        break;
-                    case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
-                        Toast.makeText(getBaseContext(), "Text failed", Toast.LENGTH_SHORT).show();
-                        break;
-                    case SmsManager.RESULT_ERROR_NO_SERVICE:
-                        Toast.makeText(getBaseContext(), "No service", Toast.LENGTH_SHORT).show();
-                        break;
-                    case SmsManager.RESULT_ERROR_NULL_PDU:
-                        Toast.makeText(getBaseContext(), "Null PDU", Toast.LENGTH_SHORT).show();
-                        break;
-                    case SmsManager.RESULT_ERROR_RADIO_OFF:
-                        Toast.makeText(getBaseContext(), "Radio off", Toast.LENGTH_SHORT).show();
-                        break;                    	
-                }	//close switch
-            }	//close onReceive()
-        }, new IntentFilter(SENT));
-		// on above line, } closes BroadcastReceiver constructor, ) closes registerReciever call
+		Intent sendIntent = new Intent(SENT);
+		sendIntent.putExtra("dest", destination).putExtra("msg", msg); 
+		PendingIntent piSent = PendingIntent.getBroadcast(this, 0, sendIntent, 0);
 		
 		//initialize smsmanager, send SMS, and add to database
 		SmsManager smsMgr = SmsManager.getDefault();
 		try{
-			smsMgr.sendTextMessage(destination,null,Compose_activity.encodeMessage(messageContent),piSent,null);
+			smsMgr.sendTextMessage(destination,null,Compose_activity.encodeMessage(msg),piSent,null);
         	Toast.makeText(getBaseContext(), "Sending message", Toast.LENGTH_SHORT).show();
 		} catch (IllegalArgumentException e){
 			Toast.makeText(getBaseContext(), "Please enter a message", Toast.LENGTH_SHORT).show();
