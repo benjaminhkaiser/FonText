@@ -250,12 +250,14 @@ public class Compose_activity extends SherlockActivity {
 		//get text fields from view, then strings from text fields
 		EditText txtDest = (EditText) findViewById(R.id.txtPhone);
 		EditText txtMsg = (EditText) findViewById(R.id.txtMessage);
-		String destination = txtDest.getText().toString();
+		final String destination = txtDest.getText().toString();
 		String msg = Html.toHtml(txtMsg.getText());
 		
 		//remove excess HTML tags from message
 		msg = msg.replace("<p dir=ltr>", "").replace("</p>", "");
 		msg = msg.replace("\n","");
+		
+		final String messageContent = msg;
 		
 		//clear text fields
 		txtDest.setText("");
@@ -272,6 +274,23 @@ public class Compose_activity extends SherlockActivity {
                 switch (getResultCode()) {
                     case Activity.RESULT_OK:
                         Toast.makeText(getBaseContext(), "Message sent", Toast.LENGTH_SHORT).show();
+
+                        //Create contentvalues to insert into contentresolver
+            			ContentValues values = new ContentValues();
+            		    values.put("address", destination);
+            		    values.put("body", messageContent);
+            		    
+            			//Find conversation, then get thread_id if there is one. If not, one will be generated automatically.
+                    	Uri uriConvo = Uri.parse("content://sms/conversations");
+                        Cursor conversationCursor = getContentResolver().query(uriConvo, null, "address='"+destination+"'", null, "date desc");
+                        if (conversationCursor.moveToFirst()){
+                        	String thread_id = conversationCursor.getString(conversationCursor.getColumnIndex("thread_id"));
+                		    values.put("thread_id", thread_id);
+                        }
+                        
+                        //insert row into table
+            		    getContentResolver().insert(Uri.parse("content://sms/sent"), values); 
+            		    getContentResolver().insert(Uri.parse("content://sms/sent"), values); 
                         break;
                     case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
                         Toast.makeText(getBaseContext(), "Text failed", Toast.LENGTH_SHORT).show();
@@ -293,23 +312,8 @@ public class Compose_activity extends SherlockActivity {
 		//initialize smsmanager, send SMS, and add to database
 		SmsManager smsMgr = SmsManager.getDefault();
 		try{
+            Toast.makeText(getBaseContext(), "Sending message", Toast.LENGTH_SHORT).show();
 			smsMgr.sendTextMessage(destination,null,encodeMessage(msg),piSent,null);
-			
-			//Create contentvalues to insert into contentresolver
-			ContentValues values = new ContentValues();
-		    values.put("address", destination);
-		    values.put("body", msg);
-		    
-			//Find conversation, then get thread_id if there is one. If not, one will be generated automatically.
-        	Uri uriConvo = Uri.parse("content://sms/conversations");
-            Cursor conversationCursor = getContentResolver().query(uriConvo, null, "address='"+destination+"'", null, "date desc");
-            if (conversationCursor.moveToFirst()){
-            	String thread_id = conversationCursor.getString(conversationCursor.getColumnIndex("thread_id"));
-    		    values.put("thread_id", thread_id);
-            }
-            
-            //insert row into table
-		    getContentResolver().insert(Uri.parse("content://sms/sent"), values); 
 		} catch (IllegalArgumentException e){
 			Toast.makeText(getBaseContext(), "Please enter a number and message", Toast.LENGTH_SHORT).show();
 		}	// close catch	

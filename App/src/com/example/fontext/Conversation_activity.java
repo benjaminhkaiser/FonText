@@ -113,7 +113,7 @@ public class Conversation_activity extends SherlockActivity {
 		//Set up button to action bar
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		
-		refreshConversationThread(sender, thread_id);
+		refreshConversationThread(sender);
 	}
 
 	@Override
@@ -149,7 +149,7 @@ public class Conversation_activity extends SherlockActivity {
 	 * @param sender	name of contact
 	 * @param thread_id	thread_id of conversation thread
 	 */
-	public void refreshConversationThread(String sender, String thread_id){
+	public void refreshConversationThread(String sender){
 		//Get cursors for sent and received messages
 		String where = "thread_id=" + thread_id;
 	    Cursor inboxCursor = getContentResolver().query(Uri.parse("content://sms/inbox"), null, where, null, "date desc");
@@ -268,7 +268,7 @@ public class Conversation_activity extends SherlockActivity {
 		String where = "thread_id=" + thread_id;
 	    Cursor inboxCursor = getContentResolver().query(Uri.parse("content://sms/inbox"), null, where, null, null);
 	    inboxCursor.moveToFirst();
-	    String destination = inboxCursor.getString(inboxCursor.getColumnIndexOrThrow("address")).toString();
+	    final String destination = inboxCursor.getString(inboxCursor.getColumnIndexOrThrow("address")).toString();
         
 		//get message to send
 		EditText txtReply = (EditText) findViewById(R.id.txtReply);
@@ -277,6 +277,8 @@ public class Conversation_activity extends SherlockActivity {
 		//remove excess HTML tags from message
 		msg = msg.replace("<p dir=ltr>", "").replace("</p>", "");
 		msg = msg.replace("\n","");
+		
+		final String messageContent = msg;
 		
 		//clear text fields
 		txtReply.setText("");
@@ -291,7 +293,12 @@ public class Conversation_activity extends SherlockActivity {
             public void onReceive(Context arg0, Intent arg1) {	//args are unused
                 switch (getResultCode()) {
                     case Activity.RESULT_OK:
-                        Toast.makeText(getBaseContext(), "Message sent", Toast.LENGTH_SHORT).show();
+                    	ContentValues values = new ContentValues();
+            		    values.put("address", destination);
+            		    values.put("body", Compose_activity.encodeMessage(messageContent));
+            		    values.put("thread_id", thread_id);
+            		    getContentResolver().insert(Uri.parse("content://sms/sent"), values); 
+                    	Toast.makeText(getBaseContext(), "Message sent", Toast.LENGTH_SHORT).show();
                         break;
                     case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
                         Toast.makeText(getBaseContext(), "Text failed", Toast.LENGTH_SHORT).show();
@@ -313,12 +320,8 @@ public class Conversation_activity extends SherlockActivity {
 		//initialize smsmanager, send SMS, and add to database
 		SmsManager smsMgr = SmsManager.getDefault();
 		try{
-			smsMgr.sendTextMessage(destination,null,Compose_activity.encodeMessage(msg),piSent,null);
-			ContentValues values = new ContentValues();
-		    values.put("address", destination);
-		    values.put("body", msg);
-		    values.put("thread_id", thread_id);
-		    getContentResolver().insert(Uri.parse("content://sms/sent"), values); 
+			smsMgr.sendTextMessage(destination,null,Compose_activity.encodeMessage(messageContent),piSent,null);
+        	Toast.makeText(getBaseContext(), "Sending message", Toast.LENGTH_SHORT).show();
 		} catch (IllegalArgumentException e){
 			Toast.makeText(getBaseContext(), "Please enter a message", Toast.LENGTH_SHORT).show();
 		}	// close catch	
