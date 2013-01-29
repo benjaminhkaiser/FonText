@@ -28,7 +28,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-public class Compose extends SherlockActivity {
+public class Compose_activity extends SherlockActivity {
 	
 	private static final int CONTACT_PICKER_RESULT = 1001;
 	
@@ -137,7 +137,7 @@ public class Compose extends SherlockActivity {
 	}
 	
 	public void onBackPressed(){
-		Intent intent = new Intent(this, Inbox.class);
+		Intent intent = new Intent(this, Inbox_activity.class);
 		startActivity(intent);
 	}
 	

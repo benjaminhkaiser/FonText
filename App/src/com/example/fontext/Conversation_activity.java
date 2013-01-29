@@ -27,7 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
-public class Conversation extends SherlockActivity {
+public class Conversation_activity extends SherlockActivity {
 
 	public String thread_id;
 
@@ -44,7 +44,7 @@ public class Conversation extends SherlockActivity {
 			text = text.replace("\n","");
 			
 			//remove bold tags
-			text = Compose.removeFormatting(text, 'b');
+			text = Compose_activity.removeFormatting(text, 'b');
 			txtReply.setText(Html.fromHtml(text));
 	    	return true;
 		}
@@ -63,7 +63,7 @@ public class Conversation extends SherlockActivity {
 			text = text.replace("\n","");
 			
 			//remove italics tags
-			text = Compose.removeFormatting(text, 'i');
+			text = Compose_activity.removeFormatting(text, 'i');
 			txtReply.setText(Html.fromHtml(text));
 	    	return true;
 		}
@@ -82,7 +82,7 @@ public class Conversation extends SherlockActivity {
 			text = text.replace("\n","");
 			
 			//remove underline tags
-			text = Compose.removeFormatting(text, 'u');
+			text = Compose_activity.removeFormatting(text, 'u');
 			txtReply.setText(Html.fromHtml(text));
 	    	return true;
 		}
@@ -129,7 +129,7 @@ public class Conversation extends SherlockActivity {
 	    // Handle item selection
 	    switch (item.getItemId()) {
 	        case android.R.id.home:
-	        	Intent intent = new Intent(this, Inbox.class);
+	        	Intent intent = new Intent(this, Inbox_activity.class);
 	    		startActivity(intent);
 	            return true;
 	        default:
@@ -140,7 +140,7 @@ public class Conversation extends SherlockActivity {
 	//TODO: This is a bad fix - it's just for usability while developing. Figure out how this is actually supposed to work.
 	@Override
 	public void onBackPressed(){
-		Intent intent = new Intent(this, Inbox.class);
+		Intent intent = new Intent(this, Inbox_activity.class);
 		startActivity(intent);
 	}
 	
@@ -187,7 +187,7 @@ public class Conversation extends SherlockActivity {
 	    	if (recmsgTime > sentmsgTime){
 	    		try{
 	    			//Get body and sender address, then create Sms object and add to list
-	    			String body = Compose.decodeMessage(inboxCursor.getString(inboxCursor.getColumnIndex("body")));
+	    			String body = Compose_activity.decodeMessage(inboxCursor.getString(inboxCursor.getColumnIndex("body")));
 	    			String senderNum = inboxCursor.getString(inboxCursor.getColumnIndex("address"));
 	    			int msgId = inboxCursor.getInt(0);
 	    			SmsMessage msg = new SmsMessage(Html.fromHtml(body), senderNum, recmsgTime, false, msgId);
@@ -197,7 +197,7 @@ public class Conversation extends SherlockActivity {
 	    	} else {
 	    		try{
 	    			//Get body and device phone number, then create Sms object and add to list
-	    			String body = Compose.decodeMessage(sentCursor.getString(sentCursor.getColumnIndex("body")));
+	    			String body = Compose_activity.decodeMessage(sentCursor.getString(sentCursor.getColumnIndex("body")));
 	    			TelephonyManager tMgr = (TelephonyManager) getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
 	    			String senderNum = tMgr.getLine1Number();
 	    			int msgId = inboxCursor.getInt(0);
@@ -243,11 +243,11 @@ public class Conversation extends SherlockActivity {
 		//insert * before and after selected text
 		int selStart = txtReply.getSelectionStart();
 		int selEnd = txtReply.getSelectionEnd();
-		text = Compose.insertIntoFormattedText(text, c, selStart);
-		text = Compose.insertIntoFormattedText(text, c, selEnd + 1);
+		text = Compose_activity.insertIntoFormattedText(text, c, selStart);
+		text = Compose_activity.insertIntoFormattedText(text, c, selEnd + 1);
 				
 		//convert to HTML and update textbox with formatted text
-		txtReply.setText(Html.fromHtml(Compose.decodeMessage(text)));
+		txtReply.setText(Html.fromHtml(Compose_activity.decodeMessage(text)));
 		
 		//rehighlight right text
 		txtReply.setSelection(selStart, selEnd);	
@@ -313,7 +313,7 @@ public class Conversation extends SherlockActivity {
 		//initialize smsmanager, send SMS, and add to database
 		SmsManager smsMgr = SmsManager.getDefault();
 		try{
-			smsMgr.sendTextMessage(destination,null,Compose.encodeMessage(msg),piSent,null);
+			smsMgr.sendTextMessage(destination,null,Compose_activity.encodeMessage(msg),piSent,null);
 			ContentValues values = new ContentValues();
 		    values.put("address", destination);
 		    values.put("body", msg);

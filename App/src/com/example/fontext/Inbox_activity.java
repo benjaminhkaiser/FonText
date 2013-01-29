@@ -24,7 +24,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 
-public class Inbox extends SherlockActivity {
+public class Inbox_activity extends SherlockActivity {
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -118,7 +118,7 @@ public class Inbox extends SherlockActivity {
 	 * Helper fn: launches compose activity
 	 */
 	public void launchCompose(){
-		Intent intent = new Intent(this, Compose.class);
+		Intent intent = new Intent(this, Compose_activity.class);
 		startActivity(intent);
 	}
 
@@ -169,9 +169,9 @@ public class Inbox extends SherlockActivity {
 		    if (msgCursor.moveToFirst()){
 		    	//get conversation info to prepare for creating SmsConversation object
 		    	address = msgCursor.getString(msgCursor.getColumnIndexOrThrow("address")).toString();
-		    	String body = Compose.decodeMessage(msgCursor.getString(msgCursor.getColumnIndex("body")));
-				String sender = SmsReceiver.getContactbyNumber(address, this, true);
-				String contactId = SmsReceiver.getContactbyNumber(address, this, false);
+		    	String body = Compose_activity.decodeMessage(msgCursor.getString(msgCursor.getColumnIndex("body")));
+				String sender = SmsReceiver_activity.getContactbyNumber(address, this, true);
+				String contactId = SmsReceiver_activity.getContactbyNumber(address, this, false);
 				long msgTime = msgCursor.getLong(msgCursor.getColumnIndex("date"));
 				String message = sender + ": " + body;
 				
@@ -221,8 +221,8 @@ public class Inbox extends SherlockActivity {
     		    	sender = sentCursor.getString(sentCursor.getColumnIndexOrThrow("address")).toString();
     		    }
     		    
-    		    sender = SmsReceiver.getContactbyNumber(sender, getBaseContext(), true);
-                Intent conversation = new Intent(getBaseContext(), Conversation.class);
+    		    sender = SmsReceiver_activity.getContactbyNumber(sender, getBaseContext(), true);
+                Intent conversation = new Intent(getBaseContext(), Conversation_activity.class);
                 conversation.putExtra("thread_id", thread_id);
                 conversation.putExtra("sender", sender);
                 startActivity(conversation);

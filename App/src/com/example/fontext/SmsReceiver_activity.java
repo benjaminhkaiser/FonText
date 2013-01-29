@@ -18,7 +18,7 @@ import android.provider.ContactsContract;
 import android.telephony.SmsMessage;
 import android.text.Html;
 
-public class SmsReceiver extends BroadcastReceiver{
+public class SmsReceiver_activity extends BroadcastReceiver{
 	public static final String SMS_EXTRA_NAME = "pdus";
 	public static final String SMS_URI = "content://sms";
 	
@@ -117,14 +117,14 @@ public class SmsReceiver extends BroadcastReceiver{
 		    String name = getContactbyNumber(address, context, true);
 		    
 			//Create intent to be executed upon notification touch
-			Intent intent = new Intent(context, Conversation.class);
+			Intent intent = new Intent(context, Conversation_activity.class);
 			intent.putExtra("sender", name);
 			intent.putExtra("thread_id", inboxCursor.getString(inboxCursor.getColumnIndex("thread_id")));
 			PendingIntent pIntent = PendingIntent.getActivity(context, 1, intent, 0);
 		    
 			//Add info to notification
 			noti.setContentTitle(name)
-	        	.setContentText(Html.fromHtml(Compose.decodeMessage(body)))
+	        	.setContentText(Html.fromHtml(Compose_activity.decodeMessage(body)))
 	        	.setSmallIcon(R.drawable.ic_launcher)
 	        	.setContentIntent(pIntent)
 	        	.setAutoCancel(true);
@@ -148,7 +148,7 @@ public class SmsReceiver extends BroadcastReceiver{
 			}
 		} else {					//if there are multiple unread SMS messages
 			//Create intent
-			Intent intent = new Intent(context, Inbox.class);
+			Intent intent = new Intent(context, Inbox_activity.class);
 			PendingIntent pIntent = PendingIntent.getActivity(context, 1, intent, 0);
 			
 			//add info to notification
@@ -166,7 +166,7 @@ public class SmsReceiver extends BroadcastReceiver{
 				while(inboxCursor.moveToNext()){
 					String body = inboxCursor.getString(inboxCursor.getColumnIndex(BODY));
 					String name = getContactbyNumber(inboxCursor.getString(inboxCursor.getColumnIndex(ADDRESS)), context, true);
-					inboxStyle.addLine(name + ": " + Html.fromHtml(Compose.decodeMessage(body)));
+					inboxStyle.addLine(name + ": " + Html.fromHtml(Compose_activity.decodeMessage(body)));
 				}
 			
 				noti.setStyle(inboxStyle);
